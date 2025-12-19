@@ -1,0 +1,32 @@
+[x] BME280 https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
+[?] SDS011 https://cdn-reichelt.de/documents/datenblatt/X200/SDS011-DATASHEET.pdf
+[?] SPS30  ttps://www.mouser.co.uk/datasheet/3/1278/1/03F340732A9B3186321794A6D5E71BC21ED237DFB2792EB0335DBA3B1F102CD6.pdf
+[x] DHT22  https://cdn.sparkfun.com/assets/f/7/d/9/c/DHT22.pdf
+[x] HTU21D https://cdn-shop.adafruit.com/datasheets/1899_HTU21D.pdf
+[x] BMP280 https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp280-ds001.pdf
+[x] SHT31  https://sensirion.com/products/catalog/SHT31-DIS-B
+[x] BMP180 https://cdn-shop.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf
+[?] PMS5003 
+[x] DNMS (Laerm) https://www.duh.de/fileadmin/user_upload/download/Projektinformation/Verkehr/L%C3%A4rm/20241002_Sensordatenauswertung_80326_F%C3%BCrth.pdf
+[?] PMS7003
+[x] DS18B20
+[x] SHT30  https://sensirion.com/products/catalog/SHT30-DIS-B
+[?] PMS1003
+[?] HPM
+[?] PPD42NS
+[x] Radiation Si22G https://www.pocketmagic.net/tube-si-22g-c%D0%B8-22%D0%B3-sensitive-geiger-muller/
+[?] SDS021
+[?] PMS3003
+[x] Radiation SBM-19 https://www.pocketmagic.net/tube-sbm-19-%D1%81%D0%B1%D0%BC-19/
+[?] PMS6003
+[x] SHT35 https://sensirion.com/products/catalog/SHT35-DIS-F
+[x] Radiation SBM-20 https://mightyohm.com/blog/products/geiger-counter/sbm-20-tube-specs/
+[x] SCD30  https://sensirion.com/products/catalog/SCD30
+[x] GPS-NEO-6M https://content.u-blox.com/sites/default/files/products/documents/NEO-6_DataSheet_%28GPS.G6-HW-09005%29.pdf
+[x] SHT15  https://sensirion.com/products/catalog/SHT15
+[?] NextPM
+[x] DS18S20  https://www.analog.com/media/en/technical-documentation/data-sheets/ds18s20.pdf
+[x] SHT11  https://sensirion.com/products/catalog/SHT11
+[x] SHT10  https://sensirion.com/products/catalog/SHT10
+[x] SEN5x  https://sensirion.com/media/documents/6791EFA0/62A1F68F/Sensirion_Datasheet_Environmental_Node_SEN5x.pdf
+[x] NO2-A43F  https://store.alphasense.com/no2-a43f/

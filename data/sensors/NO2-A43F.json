@@ -1,0 +1,30 @@
+{
+  "id": 27557790391,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:40:01",
+  "location": {
+    "id": 84437,
+    "latitude": "50.86",
+    "longitude": "15.674",
+    "altitude": "342.6",
+    "country": "PL",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 92304,
+    "pin": "18",
+    "sensor_type": {
+      "id": 30,
+      "name": "NO2-A43F",
+      "manufacturer": "Alphasense"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860963280,
+      "value": "0.01",
+      "value_type": "P0"
+    }
+  ]
+}

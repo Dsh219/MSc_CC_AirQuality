@@ -1,0 +1,35 @@
+{
+  "id": 27557383046,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 09:51:03",
+  "location": {
+    "id": 77025,
+    "latitude": "45.44277546225",
+    "longitude": "9.55815643072",
+    "altitude": "94.0",
+    "country": "IT",
+    "exact_location": 1,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 86377,
+    "pin": "7",
+    "sensor_type": {
+      "id": 4,
+      "name": "SHT10",
+      "manufacturer": "Sensirion AG"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63859949827,
+      "value": "84.65",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63859949825,
+      "value": "12.78",
+      "value_type": "temperature"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": 27557774357,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:38:06",
+  "location": {
+    "id": 5394,
+    "latitude": "27.222",
+    "longitude": "78.01",
+    "altitude": "168.0",
+    "country": "IN",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 10689,
+    "pin": "1",
+    "sensor_type": {
+      "id": 23,
+      "name": "PMS5003",
+      "manufacturer": "Plantower"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860923418,
+      "value": "112.96",
+      "value_type": "P0"
+    },
+    {
+      "id": 63860923423,
+      "value": "308.61",
+      "value_type": "P1"
+    },
+    {
+      "id": 63860923424,
+      "value": "240.07",
+      "value_type": "P2"
+    }
+  ]
+}

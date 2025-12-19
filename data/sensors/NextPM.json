@@ -1,0 +1,65 @@
+{
+  "id": 27557779260,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:38:44",
+  "location": {
+    "id": 86535,
+    "latitude": "52.122",
+    "longitude": "5.406",
+    "altitude": "4.9",
+    "country": "NL",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 71767,
+    "pin": "1",
+    "sensor_type": {
+      "id": 42,
+      "name": "NextPM",
+      "manufacturer": "TERA Sensor"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860935567,
+      "value": "46.24",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63860935563,
+      "value": "65.75",
+      "value_type": "N1"
+    },
+    {
+      "id": 63860935564,
+      "value": "66.09",
+      "value_type": "N10"
+    },
+    {
+      "id": 63860935565,
+      "value": "65.99",
+      "value_type": "N25"
+    },
+    {
+      "id": 63860935560,
+      "value": "4.49",
+      "value_type": "P0"
+    },
+    {
+      "id": 63860935561,
+      "value": "6.75",
+      "value_type": "P1"
+    },
+    {
+      "id": 63860935562,
+      "value": "4.98",
+      "value_type": "P2"
+    },
+    {
+      "id": 63860935566,
+      "value": "13.45",
+      "value_type": "temperature"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": 27557761919,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:36:42",
+  "location": {
+    "id": 40817,
+    "latitude": "51.52",
+    "longitude": "9.954",
+    "altitude": "186.6",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 11999,
+    "pin": "15",
+    "sensor_type": {
+      "id": 29,
+      "name": "DNMS (Laerm)",
+      "manufacturer": "Luftdaten.info"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860892532,
+      "value": "45.05",
+      "value_type": "noise_LAeq"
+    },
+    {
+      "id": 63860892534,
+      "value": "53.32",
+      "value_type": "noise_LA_max"
+    },
+    {
+      "id": 63860892533,
+      "value": "42.11",
+      "value_type": "noise_LA_min"
+    }
+  ]
+}

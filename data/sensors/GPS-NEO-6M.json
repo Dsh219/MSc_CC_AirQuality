@@ -1,0 +1,45 @@
+{
+  "id": 27557779145,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:38:44",
+  "location": {
+    "id": 56205,
+    "latitude": "51.98782820000",
+    "longitude": "6.55978910000",
+    "altitude": "21.2",
+    "country": "NL",
+    "exact_location": 1,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 69129,
+    "pin": "9",
+    "sensor_type": {
+      "id": 15,
+      "name": "GPS-NEO-6M",
+      "manufacturer": "ublox"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860935262,
+      "value": "16.03",
+      "value_type": "height"
+    },
+    {
+      "id": 63860935258,
+      "value": "51.99",
+      "value_type": "lat"
+    },
+    {
+      "id": 63860935261,
+      "value": "6.56",
+      "value_type": "lon"
+    },
+    {
+      "id": 63860935263,
+      "value": "2025.00",
+      "value_type": "timestamp"
+    }
+  ]
+}

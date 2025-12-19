@@ -1,0 +1,35 @@
+{
+  "id": 27557781363,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:02",
+  "location": {
+    "id": 27024,
+    "latitude": "54.068",
+    "longitude": "12.116",
+    "altitude": "29.5",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 584,
+    "pin": "7",
+    "sensor_type": {
+      "id": 19,
+      "name": "HTU21D",
+      "manufacturer": "Measurement Specialties"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860940845,
+      "value": "118.99",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63860940842,
+      "value": "10.11",
+      "value_type": "temperature"
+    }
+  ]
+}

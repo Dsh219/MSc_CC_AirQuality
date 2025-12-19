@@ -1,0 +1,11 @@
+[?] SDS011 https://cdn-reichelt.de/documents/datenblatt/X200/SDS011-DATASHEET.pdf
+[?] SPS30  ttps://www.mouser.co.uk/datasheet/3/1278/1/03F340732A9B3186321794A6D5E71BC21ED237DFB2792EB0335DBA3B1F102CD6.pdf
+[?] PMS5003 
+[?] PMS7003
+[?] PMS1003
+[?] HPM
+[?] PPD42NS
+[?] SDS021
+[?] PMS3003
+[?] PMS6003
+[?] NextPM

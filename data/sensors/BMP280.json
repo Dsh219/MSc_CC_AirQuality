@@ -1,0 +1,39 @@
+{
+  "id": 27557775938,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:38:18",
+  "location": {
+    "id": 759,
+    "latitude": "53.17",
+    "longitude": "8.21",
+    "altitude": "7.7",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 1532,
+    "pin": "3",
+    "sensor_type": {
+      "id": 20,
+      "name": "BMP280",
+      "manufacturer": "Bosch"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860927298,
+      "value": "93339.39",
+      "value_type": "pressure"
+    },
+    {
+      "id": 63860927300,
+      "value": "12.30",
+      "value_type": "temperature"
+    },
+    {
+      "value": 93425.42,
+      "value_type": "pressure_at_sealevel"
+    }
+  ]
+}

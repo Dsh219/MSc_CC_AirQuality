@@ -1,0 +1,35 @@
+{
+  "id": 27557785882,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:35",
+  "location": {
+    "id": 40911,
+    "latitude": "51.552",
+    "longitude": "9.874",
+    "altitude": "176.3",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 13796,
+    "pin": "7",
+    "sensor_type": {
+      "id": 26,
+      "name": "SHT30",
+      "manufacturer": "Sensirion AG"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860952053,
+      "value": "88.94",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63860952052,
+      "value": "9.45",
+      "value_type": "temperature"
+    }
+  ]
+}

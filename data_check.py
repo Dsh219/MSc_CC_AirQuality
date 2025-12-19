@@ -8,9 +8,13 @@ Created on Thu Dec 18 22:24:54 2025
 import requests
 import json
 import logging
+import os
 
-json_name_1hr = "1hr_json.json"
-logname = "last_hour_json_summary.log"
+
+scriptname = os.path.basename(__file__)
+
+json_name_1hr = "./data/1hr_json.json"
+logname = f"./log/{scriptname}.log"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=logname, 
@@ -61,11 +65,14 @@ logger.info(f"all entry has <sensor> key: {has_sensor == number_entry}")
 logger.info(f"all entry has <sensor:sensor_type> key: {has_sensor_type == number_entry}")
 logger.info(f"all entry has <sensor:sensor_type:name> key: {has_sensor_type_name == number_entry}")
 
+sensor_json_name = "./data/sensors/%s.json" 
 sensors = {}
 for entry in json_1h:
     sensor_name = entry["sensor"]["sensor_type"]["name"]
     if sensor_name not in sensors:
         sensors[sensor_name] = 1
+        with open(sensor_json_name%(sensor_name),"w",encoding="utf-8") as f:
+            json.dump(entry,f,indent=2)
     else:
         sensors[sensor_name] += 1
 logger.info("Sensors summary:")
@@ -73,7 +80,7 @@ logger.info(sensors)
 logger.info(f"number of sensors matches: {sum(sensors.values()) == number_entry }")
 logger.info(sensors.keys())
 
-sensors_filename = "sensors_types_1hr.txt"
+sensors_filename = "./data/sensors_types_1hr.txt"
 logger.info(f">>>>> Writing sensor types with check box to a txt file --- {sensors_filename}")
 with open(sensors_filename,"w",encoding="utf-8") as f:
     for typ in sensors.keys():

@@ -1,0 +1,40 @@
+{
+  "id": 27557790459,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:40:02",
+  "location": {
+    "id": 51310,
+    "latitude": "52.198",
+    "longitude": "5.422",
+    "altitude": "3.9",
+    "country": "NL",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 64844,
+    "pin": "17",
+    "sensor_type": {
+      "id": 40,
+      "name": "SCD30",
+      "manufacturer": "Sensirion AG"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860963442,
+      "value": "452.36",
+      "value_type": "co2_ppm"
+    },
+    {
+      "id": 63860963440,
+      "value": "74.84",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63860963439,
+      "value": "14.73",
+      "value_type": "temperature"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": 27557785116,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:30",
+  "location": {
+    "id": 55455,
+    "latitude": "47.044",
+    "longitude": "8.296",
+    "altitude": "492.8",
+    "country": "CH",
+    "exact_location": 0,
+    "indoor": 1
+  },
+  "sensor": {
+    "id": 49588,
+    "pin": "19",
+    "sensor_type": {
+      "id": 31,
+      "name": "Radiation SBM-20",
+      "manufacturer": "EcoCurious"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860950177,
+      "value": "56.21",
+      "value_type": "counts"
+    },
+    {
+      "id": 63860950171,
+      "value": "21.96",
+      "value_type": "counts_per_minute"
+    },
+    {
+      "id": 63860950174,
+      "value": "833.25",
+      "value_type": "hv_pulses"
+    },
+    {
+      "id": 63860950178,
+      "value": "149822.42",
+      "value_type": "sample_time_ms"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": 27557783296,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:16",
+  "location": {
+    "id": 88702,
+    "latitude": "50.09311661940",
+    "longitude": "14.50844407082",
+    "altitude": "217.6",
+    "country": "CZ",
+    "exact_location": 1,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 86606,
+    "pin": "16",
+    "sensor_type": {
+      "id": 43,
+      "name": "SEN5x",
+      "manufacturer": "Sensirion AG"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860945663,
+      "value": "77.62",
+      "value_type": "humidity"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": 27557790088,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:40:00",
+  "location": {
+    "id": 16693,
+    "latitude": "52.08937525521",
+    "longitude": "0.00102996826",
+    "altitude": "23.3",
+    "country": "GB",
+    "exact_location": 1,
+    "indoor": 1
+  },
+  "sensor": {
+    "id": 29790,
+    "pin": "5",
+    "sensor_type": {
+      "id": 1,
+      "name": "PPD42NS",
+      "manufacturer": "Shinyei"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860962527,
+      "value": "735.45",
+      "value_type": "durP1"
+    },
+    {
+      "id": 63860962534,
+      "value": "0.00",
+      "value_type": "durP2"
+    },
+    {
+      "id": 63860962531,
+      "value": "1.89",
+      "value_type": "P1"
+    },
+    {
+      "id": 63860962537,
+      "value": "0.62",
+      "value_type": "P2"
+    },
+    {
+      "id": 63860962528,
+      "value": "0.00",
+      "value_type": "ratioP1"
+    },
+    {
+      "id": 63860962536,
+      "value": "0.00",
+      "value_type": "ratioP2"
+    }
+  ]
+}

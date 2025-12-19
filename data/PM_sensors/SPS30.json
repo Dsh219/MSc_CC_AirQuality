@@ -1,0 +1,75 @@
+{
+  "id": 27557787584,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:45",
+  "location": {
+    "id": 55473,
+    "latitude": "48.8",
+    "longitude": "9.002",
+    "altitude": "365.6",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 185,
+    "pin": "1",
+    "sensor_type": {
+      "id": 37,
+      "name": "SPS30",
+      "manufacturer": "Sensirion AG"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860956291,
+      "value": "30.87",
+      "value_type": "N05"
+    },
+    {
+      "id": 63860956293,
+      "value": "35.99",
+      "value_type": "N1"
+    },
+    {
+      "id": 63860956299,
+      "value": "36.20",
+      "value_type": "N10"
+    },
+    {
+      "id": 63860956296,
+      "value": "36.17",
+      "value_type": "N25"
+    },
+    {
+      "id": 63860956298,
+      "value": "36.19",
+      "value_type": "N4"
+    },
+    {
+      "id": 63860956252,
+      "value": "4.53",
+      "value_type": "P0"
+    },
+    {
+      "id": 63860956285,
+      "value": "4.84",
+      "value_type": "P1"
+    },
+    {
+      "id": 63860956256,
+      "value": "4.82",
+      "value_type": "P2"
+    },
+    {
+      "id": 63860956263,
+      "value": "4.84",
+      "value_type": "P4"
+    },
+    {
+      "id": 63860956301,
+      "value": "0.55",
+      "value_type": "TS"
+    }
+  ]
+}

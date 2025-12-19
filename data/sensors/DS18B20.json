@@ -1,0 +1,30 @@
+{
+  "id": 27557785292,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:31",
+  "location": {
+    "id": 68347,
+    "latitude": "46.80350900000",
+    "longitude": "11.57942200000",
+    "altitude": "808.6",
+    "country": "IT",
+    "exact_location": 1,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 12485,
+    "pin": "13",
+    "sensor_type": {
+      "id": 13,
+      "name": "DS18B20",
+      "manufacturer": "Dallas semiconductor"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860950581,
+      "value": "4.68",
+      "value_type": "temperature"
+    }
+  ]
+}

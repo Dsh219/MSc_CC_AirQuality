@@ -1,0 +1,44 @@
+{
+  "id": 27557770788,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:37:40",
+  "location": {
+    "id": 45999,
+    "latitude": "48.808",
+    "longitude": "9.182",
+    "altitude": "310.1",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 113,
+    "pin": "11",
+    "sensor_type": {
+      "id": 17,
+      "name": "BME280",
+      "manufacturer": "Bosch"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860914521,
+      "value": "100.00",
+      "value_type": "humidity"
+    },
+    {
+      "id": 63860914520,
+      "value": "98509.18",
+      "value_type": "pressure"
+    },
+    {
+      "id": 63860914519,
+      "value": "6.91",
+      "value_type": "temperature"
+    },
+    {
+      "value": 102292.42,
+      "value_type": "pressure_at_sealevel"
+    }
+  ]
+}

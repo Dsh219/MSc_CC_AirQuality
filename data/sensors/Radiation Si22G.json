@@ -1,0 +1,45 @@
+{
+  "id": 27557778608,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:38:39",
+  "location": {
+    "id": 32440,
+    "latitude": "48.77895659073",
+    "longitude": "9.15962714069",
+    "altitude": "282.8",
+    "country": "DE",
+    "exact_location": 1,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 31122,
+    "pin": "19",
+    "sensor_type": {
+      "id": 36,
+      "name": "Radiation Si22G",
+      "manufacturer": "EcoCurious"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860933947,
+      "value": "198.21",
+      "value_type": "counts"
+    },
+    {
+      "id": 63860933945,
+      "value": "78.96",
+      "value_type": "counts_per_minute"
+    },
+    {
+      "id": 63860933946,
+      "value": "6638.04",
+      "value_type": "hv_pulses"
+    },
+    {
+      "id": 63860933948,
+      "value": "149997.54",
+      "value_type": "sample_time_ms"
+    }
+  ]
+}

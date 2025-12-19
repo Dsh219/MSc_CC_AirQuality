@@ -1,0 +1,39 @@
+{
+  "id": 27557789175,
+  "sampling_rate": null,
+  "timestamp": "2025-12-19 10:39:54",
+  "location": {
+    "id": 11824,
+    "latitude": "51.178",
+    "longitude": "13.546",
+    "altitude": "120.6",
+    "country": "DE",
+    "exact_location": 0,
+    "indoor": 0
+  },
+  "sensor": {
+    "id": 4421,
+    "pin": "3",
+    "sensor_type": {
+      "id": 8,
+      "name": "BMP180",
+      "manufacturer": "Bosch"
+    }
+  },
+  "sensordatavalues": [
+    {
+      "id": 63860960308,
+      "value": "100691.58",
+      "value_type": "pressure"
+    },
+    {
+      "id": 63860960309,
+      "value": "5.41",
+      "value_type": "temperature"
+    },
+    {
+      "value": 102189.57,
+      "value_type": "pressure_at_sealevel"
+    }
+  ]
+}
