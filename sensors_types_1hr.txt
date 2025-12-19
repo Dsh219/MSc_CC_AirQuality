@@ -1,0 +1,32 @@
+[x] BME280 https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
+[ ] SDS011 https://cdn-reichelt.de/documents/datenblatt/X200/SDS011-DATASHEET.pdf
+[ ] SPS30
+[ ] DHT22
+[ ] HTU21D
+[ ] BMP280
+[ ] SHT31
+[ ] BMP180
+[ ] PMS5003
+[ ] DNMS (Laerm)
+[ ] PMS7003
+[ ] DS18B20
+[ ] SHT30
+[ ] PMS1003
+[ ] HPM
+[ ] PPD42NS
+[ ] Radiation Si22G
+[ ] SDS021
+[ ] PMS3003
+[ ] Radiation SBM-19
+[ ] PMS6003
+[ ] SHT35
+[ ] Radiation SBM-20
+[ ] SCD30
+[ ] GPS-NEO-6M
+[ ] SHT15
+[ ] NextPM
+[ ] DS18S20
+[ ] SHT11
+[ ] SHT10
+[ ] SEN5x
+[ ] NO2-A43F

@@ -1,0 +1,34 @@
+DATA :
+	Last hour in json [ dict ]
+	Last 5min in json [ dict ]
+        daily in csv only the fist column separate by <;> 
+
+What to do:
+	Online Data:
+	1. How to access these data ? store it to S3? or get it on demand?
+	2. A mechanism for ensuring the data is kept up to date. every 5 min? everyday?
+	3. AQI converter?
+
+	Client side:
+	4. be able to get/download the data according geographical location and timeframe
+	5. workload investigation
+	6. demon elasticity of my solution.
+	7. consider the cost of the solution
+
+	Additional task:
+	1. experimental methodology test solution.
+	2. why choose this architecture.
+	3. computational requiremnets, costs or other factoes drove you choice of aws services and how you measured success.
+	4. provide a script to configures the AWS env
+	5. Briefly discuss the implications of data security and sovereignty with respect to the environmental sensor.
+
+
+Report:
+• 10% Introduction, conclusions
+• 30% Methodology:
+ 	Description of implementation including system architecture
+ 	Details of experimental methodology
+• 10% Solution: source code, organization, documentation
+• 10% Presentation of results of validation/testing
+• 30% Discussion and analysis of the results
+• 10% Report structure, presentation, clarity, references
