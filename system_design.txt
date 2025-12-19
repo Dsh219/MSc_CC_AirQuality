@@ -101,3 +101,11 @@ Plan one:
             DynamoDB: Returns the data to the Python code.
             Lambda: Sends the data back through the API to your JavaScript, which displays it on the screen.
         
+
+
+Data plan:
+    1. Old ones, convert it locally and upload to S3/DynanoDB 
+    2. select only PM sensors.
+    3. a way to spot new sensor type
+    4. In data:
+            timestamp, location (lat, long, al), PM10, PM2.5
