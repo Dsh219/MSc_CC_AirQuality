@@ -1,0 +1,38 @@
+Archieve file system:
+    ./
+    |-{YYYY}                       /* older year 2015-2024 */
+        |-{YYYY-MM-DD}
+            |- {YYYY-MM-DD_{SensorType}_sensor_{id}.csv.gz}
+            /- {YYYY-MM-DD_{SensorType}_sensor_{id}_indoor.csv.gz}
+                |   /* header */                                      /* extra parameters,e.g. altitude*/      /* --> Sensor reading from here--> */
+                |--> sensor_id;sensor_type;location;lat;lon;timestamp;  {altitude;...;                      }     P1; .....  
+            |- ...
+            |- active_sensors.txt
+            |- measurements.txt
+            |- sensor_count.txt
+            |- sensor_per_country.txt
+    |- ...
+    |-{YYYY-MM-DD}                 /* current year 2025 */
+        |- {YYYY-MM-DD_{SensorType}_sensor_{id}.csv}
+        /- {YYYY-MM-DD_{SensorType}_sensor_{id}_indoor.csv}
+            |   /* header */                                      /* extra parameters,e.g. altitude*/      /* --> Sensor reading from here--> */
+            |--> sensor_id;sensor_type;location;lat;lon;timestamp;  {altitude;...;                      }     P1; .....  
+        |- ...
+        |- active_sensors.txt
+        |- measurements.txt
+        |- sensor_count.txt
+        |- sensor_per_country.txt
+    |- ...
+    |- csv_per_month
+        |- {YYYY-MM}              /* from 2015-10 to 2025-11 */
+            |- {YYYY-MM_{SensorType}.zip}  
+                |--> {YYYY-MM_{SensorType}.csv}
+                    |   /* header */                                      /* extra parameters,e.g. altitude*/      /* --> Sensor reading from here--> */
+                    |--> sensor_id;sensor_type;location;lat;lon;timestamp;  {altitude;...;                      }     P1; .....  
+            |- ...                              
+        |- ...
+        |- temp
+    |- measurements.txt 
+    |- sensors_per_country_per_day.json
+
+    

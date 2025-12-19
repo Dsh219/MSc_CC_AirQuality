@@ -1,0 +1,63 @@
+Data format:
+	Last HOUR  in json [ dict ]
+	Last 5MIN   in json [ dict ]
+        daily in csv only the first column and separate by <;> 
+
+Progress Steps:
+	1. Design two methods for this project:
+			i. using aws services only
+			ii. using EC2 and hard code everything
+
+	2. Find a way to store the sensor data    =<<<<<!!!!!!
+		for all three formats.
+
+	3. Program the setup script for the solution. 
+		Boto3 
+
+	4. develop front-end (the same for all methods)
+		HTML and CSS 
+
+	5. Test the solution and elasticity of the solutions.   <=== find the way of doing it from internet.
+		Workload balance
+		Scalability
+		Cost
+
+	 6. write Readme
+
+Must have:
+	1. A mechanism for auto update the database
+	2. AQI convert.
+	3. Be able to get/download the data according geographical location and timeframe
+	4. Time the development time as well for different solutions. =<<!!!!
+	5. Measure the current system workload to determine whether a new worker is required. --- a mechanism for introducing new workers. (system load is measured directly from the amount data being downloaded or the number of currently connected clients, or some other criteria.)
+	6. Consider the cost implications of instantiating new workers and explain the reasoning of your design in the report from a cost perspective.
+
+Success:
+	1. handle multiple access: 
+	2. cost per check
+	3. speed test for each access
+
+Additional task:
+	1. experimental methodology test solution.
+	2. why choose this architecture.
+	3. computational requirements, costs or other factors drove you choice of aws services and how you measured success.
+	4. provide a script to configures the AWS env
+	5. Briefly discuss the implications of data security and sovereignty with respect to the environmental sensor.
+
+Things to decide:
+	Storage method or database 
+	Where to host the website page
+	load balance scheme
+	how to measure metrics for data usage
+	come up with solution policy matches the AWS framework pillars
+
+
+Report:
+• 10% Introduction, conclusions
+• 30% Methodology:
+ 	Description of implementation including system architecture
+ 	Details of experimental methodology
+• 10% Solution: source code, organization, documentation
+• 10% Presentation of results of validation/testing
+• 30% Discussion and analysis of the results
+• 10% Report structure, presentation, clarity, references
