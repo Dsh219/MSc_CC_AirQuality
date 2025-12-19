@@ -22,3 +22,82 @@ Problem so far:
         Elastic load balancing vs EC2 autoscaling
 
     4. url forwarding?
+
+
+
+Storage price at :
+    S3 standard = 0.023 per GB 
+                = 0.005 PUT, COPY, POST, LIST requests (per 1,000 requests)
+                = 0.0004 GET, SELECT, and all other requests (per 1,000 requests)
+    https://aws.amazon.com/s3/pricing/?nc=sn&loc=4
+
+    DynanoDB on-demand = 0.625 Write Request Units (per million write request units)
+                       = 0.125 Read Request Units (per million read request units)
+                       = First 25 GB stored per month is free using the DynamoDB Standard table class
+                       = 0.25 per GB-month thereafter
+                       = 0.2 per GB-month Continuous backups (PITR)
+                       = 0.1 per GB-month warm backup 
+                       = 0.03 per GB-month cold backup
+    https://aws.amazon.com/dynamodb/pricing/on-demand/
+
+    RDS :
+        Aurora standard = 0.12 per ACU hour
+                        = 0.1 per GB-month 
+                        = 0.2 I/O per 1 million requests
+                        = 0.021 backup per GB-month 
+        https://aws.amazon.com/rds/aurora/pricing/?pg=pr&loc=1
+
+        MySQL = cheapest 0.016 per hour per instance db.t4g.micro
+        https://aws.amazon.com/rds/mysql/pricing/?pg=pr&loc=2
+
+        PostgreSQL = cheapest 0.016 per hour per instance db.t4g.micro
+        https://aws.amazon.com/rds/postgresql/pricing/?pg=pr&loc=3
+
+        MariaDB = cheapest 0.016 per hour per instance db.t4g.micro
+        https://aws.amazon.com/rds/mariadb/pricing/?pg=pr&loc=4
+
+        Oracle = cheapest 0.075 per hour per instance db.t3.small
+        https://aws.amazon.com/rds/oracle/pricing/?pg=pr&loc=5
+
+        SQL Server = cheapest 0.977 per hour per db.m6i.large
+        https://aws.amazon.com/rds/sqlserver/pricing/?pg=pr&loc=6
+                    
+
+Lambda:
+https://aws.amazon.com/lambda/pricing/?gclid=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB&trk=27324d1f-ee08-40b9-8e7b-5ac228e2fecc&sc_channel=ps&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing&ef_id=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB:G:s&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing!19836376234!148728884764&gad_campaignid=19836376234&gbraid=0AAAAADjHtp-_bl_wpehFbQVbxTd_YCsvi
+Architecture	Duration	Requests
+x86 Price
+First 6 Billion GB-seconds / month	$0.0000166667 for every GB-second	$0.20 per 1M requests
+Next 9 Billion GB-seconds / month	$0.000015 for every GB-second	$0.20 per 1M requests
+Over 15 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
+Arm Price
+First 7.5 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
+Next 11.25 Billion GB-seconds / month	$0.0000120001 for every GB-second	$0.20 per 1M requests
+Over 18.75 Billion GB-seconds / month	$0.0000106667 for every GB-second	$0.20 per 1M requests
+
+!!!Arm is 20% cheaper and can be faster for python on light library, But for heavy library like pandas, needs to install verison for this ARM
+
+Asynchronous Event (including events from S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs): You are charged for 1 request per each asynchronous Event for first 256 KB. Individual event size beyond 256 KB is charged 1 additional request for each 64 KB of chunk upto 1 MB.
+
+Duration cost depends on the amount of memory you allocate to your function. You can allocate any amount of memory to your function between 128 MB and 10,240 MB, in 1 MB increments
+
+Plan one:
+    1. Server=html+css+javascript : S3 
+        Storage : S3 for data retrieve more than a day 
+                  DynanoDB for data in hours 
+        
+        To get data from DynamoDB to your website hosted on S3, 
+        you must use a "Middleman." This is because a browser (running your HTML/JS) 
+        cannot talk directly to your database securely without exposing your private 
+        AWS secret keys to the world. 
+        The standard, professional, and student-friendly way to do this is using 
+        the Serverless "Triad":
+        S3 (Frontend) 2$\rightarrow$ API Gateway 3$\rightarrow$ Lambda (Python) 4$\rightarrow$ DynamoDB.5
+        1. The Data Flow
+        Since you can program in Python and JS, this is how you connect the pieces:
+            JavaScript (Frontend): Sends a request to a URL (API Gateway).
+            API Gateway: Receives the request and "triggers" your Python code.
+            Lambda (Python): Uses the boto3 library to fetch the sensor data from DynamoDB.
+            DynamoDB: Returns the data to the Python code.
+            Lambda: Sends the data back through the API to your JavaScript, which displays it on the screen.
+        
