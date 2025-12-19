@@ -108,4 +108,6 @@ Data plan:
     2. select only PM sensors.
     3. a way to spot new sensor type
     4. In data:
-            timestamp, location (lat, long, al), PM10, PM2.5
+            type, timestamp, location (lat, long, al), PM10, PM2.5
+    5. sensor type???
+    6. needs to compute data size for archive
