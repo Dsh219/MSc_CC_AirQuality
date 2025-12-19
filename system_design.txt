@@ -10,10 +10,14 @@ Load balance:
 Problem so far:
     1. Find a way to host website:
         EC2 vs S3 vs AWS Elastic beanstalk(Full stack) !!
+        cloudfront is not there
 
     2. Find a way to store data:
-        S3 vs Amazon DynanoDB vs Amazon RDS
-    
+        S3 vs Amazon DynanoDB vs Amazon RDS vs timestream
+        S3: https://aws.amazon.com/s3/pricing/?nc=sn&loc=4
+        DynanoDB: https://aws.amazon.com/dynamodb/pricing/
+        RDS: https://aws.amazon.com/rds/pricing/
+
     3. design load balance strategy:
         Elastic load balancing vs EC2 autoscaling
 
