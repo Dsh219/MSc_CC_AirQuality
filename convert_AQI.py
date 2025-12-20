@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import requests
 import json
-import logging
 import os
 import re
 import pandas as pd
-
+import logging
 scriptname = os.path.basename(__file__)
 logname = f"./log/{scriptname}.log"
 logger = logging.getLogger(__name__)
@@ -110,6 +109,8 @@ l = []
 not_w = []
 i = 0
 a = 0
+import time 
+st = time.time()
 for filename in hrefs:
     date,Type,_ = filename.split("_",2)
     if Type.upper() in pmsensors:
@@ -121,7 +122,11 @@ for filename in hrefs:
         except Exception as e:
             not_w.append(filename)
 
+dt = time.time() - st
+logger.info(f"Processed {i} out of {a} files in {dt:.2f} seconds.")
+logger.info(f"Files not processed for 2025-12-19: {not_w}")
 
+logger.info(f"Saving results to ./data/AQI_2025-12-19.csv")
 cols = ["sensor_id", "sensor_type", "location", "lat", "lon", "altitude", "date", "PM10", "PM2.5"]
 ndf = pd.DataFrame(l, columns=cols)
 ndf.to_csv("./data/AQI_2025-12-19.csv", index=False)

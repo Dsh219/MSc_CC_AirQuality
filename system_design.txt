@@ -25,7 +25,7 @@ Storage:
   
     some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
     some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
-
+    some sensors are in the same location <= lat 51.622  lon 5.526
 Website host:
 
 Function:

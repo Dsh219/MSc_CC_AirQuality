@@ -1,0 +1,16 @@
+__main__-INFO: Checking if lat and lon are unique in ./data/AQI_2025-12-19.csv
+__main__-INFO: lat and lon are unique: False
+__main__-INFO: Duplicate entries found for the following lat and lon combinations:
+__main__-INFO: lat         lon       
+-35.352000  149.036000     2
+-35.248000  149.138000     2
+ 0.000000   0.000000      13
+ 27.730000  85.332000      8
+ 32.062000  34.834000      2
+                          ..
+ 55.628000  37.476000      3
+ 55.762000  38.084000      2
+ 59.304000  18.294000      2
+ 59.394236  18.049451      3
+ 59.926000  30.404000      2
+Length: 195, dtype: int64
