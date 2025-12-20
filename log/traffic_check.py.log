@@ -1,0 +1,8 @@
+__main__-INFO: >>>>> Download last 1hr json data from https://data.sensor.community/static/v2/data.1h.json
+__main__-INFO: Raw download: 8.89 MB
+__main__-INFO: JSON serialized: 9.81 MB
+__main__-INFO: last 1hr json data from https://data.sensor.community/static/v2/data.1h.json size check complete <<<<<
+__main__-INFO: ------------------------------------------
+__main__-INFO: >>>>> Download a day folder from https://archive.sensor.community/2025-12-19/
+__main__-INFO: Total size of PM sensor CSV files for a day: 428.61 MB
+__main__-INFO: Day folder from https://archive.sensor.community/2025-12-19/ size check complete <<<<<

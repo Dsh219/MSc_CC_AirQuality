@@ -1,10 +1,38 @@
 Storage:
+    Raw:
+    a day csv ~ 428.61 MB 
+    a hour json ~ 9.81 MB
+
+    Hourly for a day:
+        9.81 * 24 / 1024 = 0.23 GB
+        Cost for two days: 
+            S3 = 0.23 * 2 * 0.023 = $0.01
+            DynanoDB = 0.23 * 2 * 0.25 = $0.115
+
+    Daily csv/csv.gz files:
+    2015-10-1 to 2025-12-20 ~ 3733 days 
+    archieve size = 3733 * 428.61 = 1600001.13 MB = 1562.50 GB = 1.53 TB
+    cost for storing all = 1562.5 * 0.023 = $35.9375
+    for only 2 yrs: 428.61 * 365 *2 / 1024 *0.023 =  $7.03
+
+    Monthly zip files:
+    monthly csv zip => missing SPS30, SDS021,NextPM
+        (447+651+224+410)/1024/1024 + (1+33+34) /1024 + 3.5 = 3.57 GB
+        total 3.57 *12 *10 = 428.4 GB 
+
+    Converted CSV file for a day ~ 600 KB
+    for all data so far = 600 * 3733 /1024/1024 = 2.14GB
+  
+    some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
+    some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
 
 Website host:
 
 Function:
 
 Load balance:
+    Test : K6   https://k6.io/open-source/
+
 
 
 Problem so far:
@@ -83,7 +111,7 @@ Duration cost depends on the amount of memory you allocate to your function. You
 
 Plan one:
     1. Server=html+css+javascript : S3 
-        Storage : S3 for data retrieve more than a day 
+        Storage : S3 for data retrieve within 2 yrs, older retreieve by direct download
                   DynanoDB for data in hours 
         
         To get data from DynamoDB to your website hosted on S3, 
