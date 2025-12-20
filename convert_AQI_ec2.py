@@ -6,7 +6,7 @@ import re
 import pandas as pd
 import logging
 scriptname = os.path.basename(__file__)
-logname = f"./log/{scriptname}.log"
+logname = f"./{scriptname}.log"
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=logname, 
                     encoding='utf-8',
