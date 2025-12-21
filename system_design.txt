@@ -98,50 +98,99 @@ Storage price at :
                     
 
 Lambda:
-https://aws.amazon.com/lambda/pricing/?gclid=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB&trk=27324d1f-ee08-40b9-8e7b-5ac228e2fecc&sc_channel=ps&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing&ef_id=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB:G:s&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing!19836376234!148728884764&gad_campaignid=19836376234&gbraid=0AAAAADjHtp-_bl_wpehFbQVbxTd_YCsvi
-Architecture	Duration	Requests
-x86 Price
-First 6 Billion GB-seconds / month	$0.0000166667 for every GB-second	$0.20 per 1M requests
-Next 9 Billion GB-seconds / month	$0.000015 for every GB-second	$0.20 per 1M requests
-Over 15 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
-Arm Price
-First 7.5 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
-Next 11.25 Billion GB-seconds / month	$0.0000120001 for every GB-second	$0.20 per 1M requests
-Over 18.75 Billion GB-seconds / month	$0.0000106667 for every GB-second	$0.20 per 1M requests
+    https://aws.amazon.com/lambda/pricing/?gclid=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB&trk=27324d1f-ee08-40b9-8e7b-5ac228e2fecc&sc_channel=ps&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing&ef_id=Cj0KCQiAjJTKBhCjARIsAIMC44_zPfOZls0wNvRqsAkrYjInRHetBWAas3KWMZ3GwJysUk7b0Up-VrAaAgqrEALw_wcB:G:s&s_kwcid=AL!4422!3!651612449951!e!!g!!lambda%20pricing!19836376234!148728884764&gad_campaignid=19836376234&gbraid=0AAAAADjHtp-_bl_wpehFbQVbxTd_YCsvi
+    Architecture	Duration	Requests
+    x86 Price
+    First 6 Billion GB-seconds / month	$0.0000166667 for every GB-second	$0.20 per 1M requests
+    Next 9 Billion GB-seconds / month	$0.000015 for every GB-second	$0.20 per 1M requests
+    Over 15 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
+    Arm Price
+    First 7.5 Billion GB-seconds / month	$0.0000133334 for every GB-second	$0.20 per 1M requests
+    Next 11.25 Billion GB-seconds / month	$0.0000120001 for every GB-second	$0.20 per 1M requests
+    Over 18.75 Billion GB-seconds / month	$0.0000106667 for every GB-second	$0.20 per 1M requests
 
-!!!Arm is 20% cheaper and can be faster for python on light library, But for heavy library like pandas, needs to install verison for this ARM
+    !!!Arm is 20% cheaper and can be faster for python on light library, But for heavy library like pandas, needs to install verison for this ARM
 
-Asynchronous Event (including events from S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs): You are charged for 1 request per each asynchronous Event for first 256 KB. Individual event size beyond 256 KB is charged 1 additional request for each 64 KB of chunk upto 1 MB.
+    Asynchronous Event (including events from S3, SNS, EventBridge, StepFunctions, Cloudwatch Logs): You are charged for 1 request per each asynchronous Event for first 256 KB. Individual event size beyond 256 KB is charged 1 additional request for each 64 KB of chunk upto 1 MB.
 
-Duration cost depends on the amount of memory you allocate to your function. You can allocate any amount of memory to your function between 128 MB and 10,240 MB, in 1 MB increments
+    Duration cost depends on the amount of memory you allocate to your function. You can allocate any amount of memory to your function between 128 MB and 10,240 MB, in 1 MB increments
 
-Plan one:
-    1. Server=html+css+javascript : S3 
-        Storage : S3 for data retrieve within 2 yrs, older retreieve by direct download
-                  DynanoDB for data in hours 
+=======================================================================================================
+Stages:
+    Data preparation (up-to data online at S3) -> model (serverless) -> Test -> Report
+    !!! get costs for each stage
+
+
+Data preparation:
+    1. use AWS EC2 VM to do the convertions on all data:
+        1. Convertion script
+            1.Filter PM sensors out
+            1.convert daily PM sensors reading to AQI(24hours-mean) readings in json format
+                json format is: LatnLon_Date_Id.json 
+                    for Lat, Lon => replace <.> with p 
+                    in json => {Type:"sensor_type", PM10:AQI_index, PM2.5:AQI_index}
+
+        2. try 3 VM models for different price and time. 
+
+        3. prepare 2025 data as my plan for demonstrating my plan (my method price is higher than $50)
+        {get cost and time for each methods}
+            1.S3 with my file system for 2025, 
+            2.S3 with raw PM csv files uploaded for 2024 
+            3.Other files, dont store files in S3, direct access to sensor data site and convertion on fly.
+    
+
+Model:
+    1. API Gateway
+    2. Lambda function for triggers
+    3. Frontend 
+    4. Daily update mechanism
+
+    model is :
+        serverless approach:
+            use S3 to host Frontend
+            use S3 to store older data 
+            use DynamoDB to store daily data 
+            Daily mechanism includes:
+                Every 5 am, update data from yersterday (since data from yersterday avaiable after 4 am)
+                    5 am failed, try 0530, if failed again, email 
+                Every 12 am, clear DynamoDB.
+                Every hour, update DynanoDB.
+
+Test:
+    1. K6 
+    2. AWS offical load test.
+
+
+Note on Data interaction between S3 and DynanoDB:
+    To get data from DynamoDB to your website hosted on S3, 
+    you must use a "Middleman." This is because a browser (running your HTML/JS) 
+    cannot talk directly to your database securely without exposing your private 
+    AWS secret keys to the world. 
+    The standard, professional, and student-friendly way to do this is using 
+    the Serverless "Triad":
+    S3 (Frontend) 2$\rightarrow$ API Gateway 3$\rightarrow$ Lambda (Python) 4$\rightarrow$ DynamoDB.5
+    1. The Data Flow
+    Since you can program in Python and JS, this is how you connect the pieces:
+        JavaScript (Frontend): Sends a request to a URL (API Gateway).
+        API Gateway: Receives the request and "triggers" your Python code.
+        Lambda (Python): Uses the boto3 library to fetch the sensor data from DynamoDB.
+        DynamoDB: Returns the data to the Python code.
+        Lambda: Sends the data back through the API to your JavaScript, which displays it on the screen.
         
-        To get data from DynamoDB to your website hosted on S3, 
-        you must use a "Middleman." This is because a browser (running your HTML/JS) 
-        cannot talk directly to your database securely without exposing your private 
-        AWS secret keys to the world. 
-        The standard, professional, and student-friendly way to do this is using 
-        the Serverless "Triad":
-        S3 (Frontend) 2$\rightarrow$ API Gateway 3$\rightarrow$ Lambda (Python) 4$\rightarrow$ DynamoDB.5
-        1. The Data Flow
-        Since you can program in Python and JS, this is how you connect the pieces:
-            JavaScript (Frontend): Sends a request to a URL (API Gateway).
-            API Gateway: Receives the request and "triggers" your Python code.
-            Lambda (Python): Uses the boto3 library to fetch the sensor data from DynamoDB.
-            DynamoDB: Returns the data to the Python code.
-            Lambda: Sends the data back through the API to your JavaScript, which displays it on the screen.
-        
+Scrtips:
+    <convert_AQI_ec2.py> used on daily data on 2025-12-19  for testing time and cost for data convertion
+    <daily_file_check.py> used to check if geographical infomations are unique
+    <data_check.py> used to check 1hr json sensors data, get the type and investigate the json structure.
+        this also output a text file with sensor types reported.
+        PM sensors are filtered manually 
+            -> respectively ./data/sensors 
+                => then filter 
+                =>./data/PM_sensors 
+                => then summary
+                => ./data/PMsensors.json
+    <traffic_check.py> used to examine the traffic for getting 1hr json and daily csv folder
 
 
-Data plan:
-    1. Old ones, convert it locally and upload to S3/DynanoDB 
-    2. select only PM sensors.
-    3. a way to spot new sensor type
-    4. In data:
-            type, timestamp, location (lat, long, al), PM10, PM2.5
-    5. sensor type???
-    6. needs to compute data size for archive
+What can be improved:
+    1. a way to spot new sensor type
+
