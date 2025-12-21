@@ -25,7 +25,10 @@ Storage:
 
     Converted to json for a day, there are 10675 sensors, save the AQI as json formatted shown in ./data/test.json 
     for all data so far = 51 B * 10675 * 3733 / 1024 /1024 /1024 = 1.89 GB
-  
+        |->> for converting the all PM data on single t3.micro : 10675 / 5000 * 2719.28(s) * 3733 / 3600 = ~6000 hrs 
+        |->> 6000 hrs * 0.0104 = $62.4  
+        |->> for converting the 20%(2024-2025) PM data => 6000*0.2 = 1200 hrs ~ $12.48 
+    
     some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
     some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
     some sensors are in the same location <= lat 51.622  lon 5.526
