@@ -33,6 +33,9 @@ instanceType = [
     "c6a.large",
     "c6in.large"
 ]
+instanceType = [
+    "t3.micro"
+]
 
 ec2 = session.client('ec2')
 #response = ec2.create_security_group(
