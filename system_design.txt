@@ -20,7 +20,7 @@ Storage:
         (447+651+224+410)/1024/1024 + (1+33+34) /1024 + 3.5 = 3.57 GB
         total 3.57 *12 *10 = 428.4 GB 
 
-    Converted CSV file for a day ~ 600 KB
+    Converted CSV file for a day with only PM sensors ~ 600 KB
     for all data so far = 600 * 3733 /1024/1024 = 2.14GB
 
     Converted to json for a day, there are 10675 sensors, save the AQI as json formatted shown in ./data/test.json 
@@ -125,12 +125,24 @@ Data preparation:
     1. use AWS EC2 VM to do the convertions on all data:
         1. Convertion script
             1.Filter PM sensors out
-            1.convert daily PM sensors reading to AQI(24hours-mean) readings in json format
-                json format is: LatnLon_Date_Id.json 
-                    for Lat, Lon => replace <.> with p 
-                    in json => {Type:"sensor_type", PM10:AQI_index, PM2.5:AQI_index}
+            1.convert daily PM sensors reading to AQI(24hours-mean) readings in parquet format
+                s3://aqi-data/year=2025/month=10/day=11/data.parquet 
+
 
         2. try 3 VM models for different price and time. 
+            AMI = Amazon Linux 2023 kernel-6.1 AMI {ami-068c0051b15cdb816}
+            instance type:
+                1. compare memory
+                Type   vCPU  memory  Hourly_cost  network performance 
+                t3.micro  2  1GB  $0.0104 Up to 5 Gb
+                t3.small  2  2GB  $0.0208 Up to 5 Gb
+            =   t3a.medium 2 4GB  $0.0376 Up to 5 Gb
+                t3.large  2  8GB  $0.0832 Up to 5 Gb
+
+                2. compare network performance 
+            =   t3a.medium 2 4GB  $0.0376 Up to 5 Gb
+                c6a.large  2 4GB  $0.0765 Up to 10 Gb
+                c6in.large 2 4GB  $0.1134 Up to 25 Gb
 
         3. prepare 2025 data as my plan for demonstrating my plan (my method price is higher than $50)
         {get cost and time for each methods}

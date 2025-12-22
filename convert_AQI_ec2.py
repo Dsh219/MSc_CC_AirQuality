@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import requests
-import json
 import os
 import re
 import pandas as pd
+import time 
 import logging
+import sys
+
+it = sys.argv[1]  # iteration identifier for log file
 scriptname = os.path.basename(__file__)
-logname = f"./{scriptname}.log"
+logname = f"./{scriptname}_{it}.log"
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=logname, 
                     encoding='utf-8',
@@ -14,8 +17,19 @@ logging.basicConfig(filename=logname,
                     level=logging.INFO,
                     format = '%(name)s-%(levelname)s: %(message)s'
                     )
-with open("./PMsensors.json","r",encoding="utf-8") as f:
-    pmsensors = json.load(f)
+pmsensors = [
+ "SDS011",
+ "SPS30",
+ "PMS5003",
+ "PMS7003",
+ "PMS1003",
+ "HPM",
+ "PPD42NS",
+ "SDS021",
+ "PMS3003",
+ "PMS6003",
+ "NextPM"
+]
 
 PM = {
     "P1" : "PM10",
@@ -82,13 +96,11 @@ def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
                 aqi_p2 = AQI[PM["P2"]][condition]
                 break
     row = df.iloc[0]
-    return [row.get("sensor_id", None),
+    return [date,
             row.get("sensor_type", None),
-            row.get("location", None),
             row.get("lat", None),
             row.get("lon", None),
             row.get("altitude", None),
-            date,
             aqi_p1,
             aqi_p2
             ]
@@ -109,7 +121,7 @@ l = []
 not_w = []
 i = 0
 a = 0
-import time 
+
 st = time.time()
 for filename in hrefs:
     date,Type,_ = filename.split("_",2)
@@ -118,7 +130,6 @@ for filename in hrefs:
         try:
             l.append(convert_AQI(folder + filename, date))
             i+=1
-            #print(f"{i}/{a} processed.\r", end="")
         except Exception as e:
             not_w.append(filename)
 
@@ -126,8 +137,7 @@ dt = time.time() - st
 logger.info(f"Processed {i} out of {a} files in {dt:.2f} seconds.")
 logger.info(f"Files not processed for 2025-12-19: {not_w}")
 
-logger.info(f"Saving results to ./data/AQI_2025-12-19.csv")
-cols = ["sensor_id", "sensor_type", "location", "lat", "lon", "altitude", "date", "PM10", "PM2.5"]
+logger.info(f"Saving results to ./AQI.parquet")
+cols = ["date", "sensor_type", "lat", "lon", "altitude",  "PM10", "PM2.5"]
 ndf = pd.DataFrame(l, columns=cols)
-ndf.to_csv("./AQI_2025-12-19.csv", index=False)
-
+ndf.to_parquet("./AQI_2025-12-19.parquet", engine="pyarrow", compression="snappy")
