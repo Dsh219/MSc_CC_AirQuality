@@ -58,6 +58,8 @@ myscript = '''#!/bin/bash
 yum update -y
 yum install -y python3 python3-pip
 pip3 install pandas pyarrow requests
+curl -L  -o /home/ec2-user/script.py
+
 
 '''
 

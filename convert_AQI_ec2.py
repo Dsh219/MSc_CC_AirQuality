@@ -10,7 +10,7 @@ import sys
 
 instance = sys.argv[1]  # instance type for log file
 scriptname = os.path.basename(__file__)
-logname = f"./{scriptname}_{instance}.log"
+logname = f"./{instance}.log"
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=logname, 
                     encoding='utf-8',
