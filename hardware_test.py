@@ -35,35 +35,37 @@ instanceType = [
 ]
 
 ec2 = session.client('ec2')
-
-
-response = ec2.create_security_group(
-    GroupName='cloud-computing-CC',
-    Description='Security group for cloud-computing CC'
-)
-sg_id = response['GroupId']
-print(f"{sg_id=:}")#sg-059a0f09121671213
-ec2.authorize_security_group_ingress(
-    GroupId=sg_id,
-    IpPermissions=[
-        {
-            'IpProtocol': 'tcp',
-            'FromPort': 0,
-            'ToPort': 65535,
-            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # Allows all IPv4
-        }
-    ]
-)
+#response = ec2.create_security_group(
+#    GroupName='cloud-computing-CC',
+#    Description='Security group for cloud-computing CC'
+#)
+#sg_id = response['GroupId']
+#print(f"{sg_id=:}")#sg-059a0f09121671213
+#ec2.authorize_security_group_ingress(
+#    GroupId=sg_id,
+#    IpPermissions=[
+#        {
+#            'IpProtocol': 'tcp',
+#            'FromPort': 0,
+#            'ToPort': 65535,
+#            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # Allows all IPv4
+#        }
+#    ]
+#)
 myscript = '''#!/bin/bash
-yum update -y
-yum install -y python3 python3-pip
-pip3 install pandas pyarrow requests
-curl -L  -o /home/ec2-user/script.py
+sudo yum update -y
+sudo yum install -y python3 python3-pip
+sudo pip3 install pandas pyarrow requests
+curl -L https://raw.githubusercontent.com/Dsh219/MSc_CC_AirQuality/refs/heads/main/convert_AQI_ec2.py?token=GHSAT0AAAAAADQX2H6HIXZQDFT4ZJCUVKVC2KJSURA -o /home/ec2-user/script.py
+cd /home/ec2-user
+python3 script.py %s 
+aws s3 cp ./%s.log s3://cloudcomputing-20251222/logs/%s.log
 
+shutdown -h now
 
 '''
 
-'''
+
 for instance in instanceType:
     config = Config(
         retries = {
@@ -79,7 +81,8 @@ for instance in instanceType:
         KeyName='vockey',
         SecurityGroups=['cloud-computing-CC'],
         Config=config,
-        UserData=myscript
+        UserData=myscript % (instance, instance, instance)
     )
+
     print(f"Instance {instance} launched, ID: {response['Instances'][0]['InstanceId']}")
-'''
+

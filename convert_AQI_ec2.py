@@ -132,8 +132,6 @@ for _ in range(3):
             try:
                 l.append(convert_AQI(folder + filename, date))
                 i+=1
-                if i == 5:
-                    break
             except Exception as e:
                 not_w.append(filename)
 
@@ -142,8 +140,6 @@ for _ in range(3):
     logger.info(f"Saving results to ./AQI.parquet")
     cols = ["date", "sensor_type", "lat", "lon", "altitude",  "PM10", "PM2_5"]
     ndf = pd.DataFrame(l, columns=cols)
-    print(ndf.dtypes)
-    print(ndf.head())
     ndf.to_parquet("./AQI_2025-12-19.parquet", engine="pyarrow", compression="snappy")
 
     dt = time.time() - st
