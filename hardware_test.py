@@ -37,7 +37,13 @@ instanceType = [
     "t3.micro"
 ]
 
-ec2 = session.client('ec2')
+config = Config(
+        retries = {
+            'max_attempts': 5,
+            'mode': 'standard'
+        }
+    )
+ec2 = session.client('ec2',config=config)
 #response = ec2.create_security_group(
 #    GroupName='cloud-computing-CC',
 #    Description='Security group for cloud-computing CC'
@@ -56,26 +62,23 @@ ec2 = session.client('ec2')
 #    ]
 #)
 myscript = '''#!/bin/bash
-sudo yum update -y
-sudo yum install -y python3 python3-pip
-sudo pip3 install pandas pyarrow requests
-curl -L https://raw.githubusercontent.com/Dsh219/MSc_CC_AirQuality/refs/heads/main/convert_AQI_ec2.py?token=GHSAT0AAAAAADQX2H6HIXZQDFT4ZJCUVKVC2KJSURA -o /home/ec2-user/script.py
+yum update -y
+yum install -y python3-pip
+sudo curl -L %s -o /home/ec2-user/script.py
 cd /home/ec2-user
+python3 -m venv my_env
+source my_env/bin/activate
+pip3 install pandas pyarrow requests
 python3 script.py %s 
 aws s3 cp ./%s.log s3://cloudcomputing-20251222/logs/%s.log
 
-shutdown -h now
+
 
 '''
-
+url = "https://raw.githubusercontent.com/Dsh219/MSc_CC_AirQuality/refs/heads/main/convert_AQI_ec2.py"
 
 for instance in instanceType:
-    config = Config(
-        retries = {
-            'max_attempts': 10,
-            'mode': 'standard'
-        }
-    )
+    
     response = ec2.run_instances(
         ImageId='ami-068c0051b15cdb816',  #Amazon Linux 2023 AMI 2023.9.20251208.0 x86_64 HVM kernel-6.1 
         InstanceType=instance,
@@ -83,8 +86,10 @@ for instance in instanceType:
         MaxCount=1,
         KeyName='vockey',
         SecurityGroups=['cloud-computing-CC'],
-        Config=config,
-        UserData=myscript % (instance, instance, instance)
+        IamInstanceProfile={
+            'Name': 'LabInstanceProfile' 
+        },
+        UserData=myscript % (url,instance, instance, instance)
     )
 
     print(f"Instance {instance} launched, ID: {response['Instances'][0]['InstanceId']}")

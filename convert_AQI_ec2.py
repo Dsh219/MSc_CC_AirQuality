@@ -132,8 +132,8 @@ for _ in range(3):
             try:
                 l.append(convert_AQI(folder + filename, date))
                 i+=1
-                if i == 5:
-                    break
+                #if i == 5:
+                #    break
             except Exception as e:
                 not_w.append(filename)
 
