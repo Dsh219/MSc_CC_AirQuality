@@ -165,7 +165,7 @@ Model:
             Daily mechanism includes:
                 Every 5 am, update data from yersterday (since data from yersterday avaiable after 4 am)
                     5 am failed, try 0530, if failed again, email 
-                Every 12 am, clear DynamoDB.
+                Every 12 am, clear DynamoDB. use ttl for clear
                 Every hour, update DynanoDB.
 
 Test:
