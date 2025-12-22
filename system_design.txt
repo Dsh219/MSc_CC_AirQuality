@@ -129,7 +129,7 @@ Data preparation:
                 s3://aqi-data/year=2025/month=10/day=11/data.parquet 
 
 
-        2. try 3 VM models for different price and time. 
+doing   2. try 3 VM models for different price and time. 
             AMI = Amazon Linux 2023 kernel-6.1 AMI {ami-068c0051b15cdb816}
             instance type:
                 1. compare memory

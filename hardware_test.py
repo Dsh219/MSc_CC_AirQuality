@@ -34,7 +34,7 @@ instanceType = [
     "c6in.large"
 ]
 instanceType = [
-    "t3.micro"
+    "t3a.medium"
 ]
 
 config = Config(
@@ -72,7 +72,7 @@ pip3 install pandas pyarrow requests
 python3 script.py %s 
 aws s3 cp ./%s.log s3://cloudcomputing-20251222/logs/%s.log
 
-
+shutdown -h now
 
 '''
 url = "https://raw.githubusercontent.com/Dsh219/MSc_CC_AirQuality/refs/heads/main/convert_AQI_ec2.py"
