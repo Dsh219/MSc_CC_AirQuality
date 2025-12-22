@@ -16,15 +16,6 @@ session = boto3.Session(
     region_name=region
 )
 
-#s3 = session.client('s3')
-#s3.create_bucket(Bucket='cloudcomputing-20251222')
-#response = s3.list_buckets()
-
-# Output the bucket names
-#print('Existing buckets:')
-#for bucket in response['Buckets']:
-#    print(f'  {bucket["Name"]}')
-
 instanceType = [
     "t3.micro",
     "t3.small",
@@ -32,9 +23,6 @@ instanceType = [
     "t3.large",
     "c6a.large",
     "c6in.large"
-]
-instanceType = [
-    "t3a.medium"
 ]
 
 config = Config(
@@ -44,23 +32,7 @@ config = Config(
         }
     )
 ec2 = session.client('ec2',config=config)
-#response = ec2.create_security_group(
-#    GroupName='cloud-computing-CC',
-#    Description='Security group for cloud-computing CC'
-#)
-#sg_id = response['GroupId']
-#print(f"{sg_id=:}")#sg-059a0f09121671213
-#ec2.authorize_security_group_ingress(
-#    GroupId=sg_id,
-#    IpPermissions=[
-#        {
-#            'IpProtocol': 'tcp',
-#            'FromPort': 0,
-#            'ToPort': 65535,
-#            'IpRanges': [{'CidrIp': '0.0.0.0/0'}]  # Allows all IPv4
-#        }
-#    ]
-#)
+
 myscript = '''#!/bin/bash
 yum update -y
 yum install -y python3-pip
