@@ -2,13 +2,15 @@
 
 import boto3
 from botocore.config import Config
-with open('./credentials/credentials.txt', 'r') as file:
+# read credentials
+#with open('./credentials/credentials.txt', 'r') as file:
+with open('../credentials.txt', 'r') as file:
     lines = file.readlines()
     access_key = lines[1].split("=")[1].strip()
     secret_key = lines[2].split("=")[1].strip()
     token = lines[3].split("=")[1].strip()
 region = 'us-east-1'
-
+# Create a session
 session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key,
@@ -16,7 +18,7 @@ session = boto3.Session(
     region_name=region
 )
 # Define vars for setup
-S3_name = 'cloudcomputing-20251222'
+S3_name = 'cloudcomputing-20251222'   # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 # S3 setup
 s3 = session.client('s3')

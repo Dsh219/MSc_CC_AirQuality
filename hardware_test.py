@@ -2,20 +2,22 @@
 
 import boto3
 from botocore.config import Config
-with open('./credentials/credentials.txt', 'r') as file:
+# read credentials
+#with open('./credentials/credentials.txt', 'r') as file:
+with open('../credentials.txt', 'r') as file:
     lines = file.readlines()
     access_key = lines[1].split("=")[1].strip()
     secret_key = lines[2].split("=")[1].strip()
     token = lines[3].split("=")[1].strip()
 region = 'us-east-1'
-
+# Create a session
 session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key,
     aws_session_token=token,
     region_name=region
 )
-
+# Define instance types to test
 instanceType = [
     "t3.micro",
     "t3.small",
@@ -24,7 +26,7 @@ instanceType = [
     "c6a.large",
     "c6in.large"
 ]
-
+# EC2 client setup
 config = Config(
         retries = {
             'max_attempts': 5,
@@ -32,7 +34,6 @@ config = Config(
         }
     )
 ec2 = session.client('ec2',config=config)
-
 myscript = '''#!/bin/bash
 yum update -y
 yum install -y python3-pip
@@ -47,10 +48,10 @@ aws s3 cp ./%s.log s3://cloudcomputing-20251222/logs/%s.log
 shutdown -h now
 
 '''
+# Script URL
 url = "https://raw.githubusercontent.com/Dsh219/MSc_CC_AirQuality/refs/heads/main/convert_AQI_ec2.py"
-
+# Launch instances and run the script
 for instance in instanceType:
-    
     response = ec2.run_instances(
         ImageId='ami-068c0051b15cdb816',  #Amazon Linux 2023 AMI 2023.9.20251208.0 x86_64 HVM kernel-6.1 
         InstanceType=instance,
