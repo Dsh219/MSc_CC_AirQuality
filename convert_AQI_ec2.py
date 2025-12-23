@@ -29,7 +29,7 @@ pmsensors = [
  "SDS021",
  "PMS3003",
  "PMS6003",
- "NextPM"
+ "NEXTPM"
 ]
 
 PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5), 

@@ -67,4 +67,3 @@ for instance in instanceType:
     )
 
     print(f"Instance {instance} launched, ID: {response['Instances'][0]['InstanceId']}")
-
