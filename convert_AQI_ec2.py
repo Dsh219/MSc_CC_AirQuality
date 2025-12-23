@@ -37,7 +37,7 @@ PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5),
 PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
               (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
 
-def aqi(value:float|int, ranges:list) -> int:
+def aqi(value:float, ranges:list) -> int:
     for high, score in ranges:
         if value <= high:
             return score
