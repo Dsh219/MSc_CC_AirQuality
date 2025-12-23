@@ -32,37 +32,15 @@ pmsensors = [
  "NextPM"
 ]
 
-PM = {
-    "P1" : "PM10",
-    "P2" : "PM2.5"
-}
+PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5), 
+               (53, 6), (58, 7), (64, 8), (70, 9), (float('inf'), 10) ]
+PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
+              (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
 
-AQI = {
-    "PM2.5" : {
-         "0<=%f<=11" : 1,
-        "12<=%f<=23" : 2,
-        "24<=%f<=35" : 3,
-        "36<=%f<=41" : 4,
-        "42<=%f<=47" : 5,
-        "48<=%f<=53" : 6,
-        "54<=%f<=58" : 7,
-        "59<=%f<=64" : 8,
-        "65<=%f<=70" : 9,
-        "71<=%f" : 10
-    },
-    "PM10" : {
-         "0<=%f<=16" : 1,
-        "17<=%f<=33" : 2,
-        "34<=%f<=50" : 3,
-        "51<=%f<=58" : 4,
-        "59<=%f<=66" : 5,
-        "67<=%f<=75" : 6,
-        "76<=%f<=83" : 7,
-        "84<=%f<=91" : 8,
-        "92<=%f<=100" : 9,
-       "101<=%f" : 10
-    }
-}
+def aqi(value:float|int, ranges:list) -> int:
+    for high, score in ranges:
+        if value <= high:
+            return score
 
 def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
     for attempt in range(retries):
@@ -86,16 +64,11 @@ def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
         mean_p2 = df["P2"].mean()
     aqi_p1 = 0
     if not pd.isna(mean_p1): # Check if mean_p1 is not NaN which means whole column is NaN
-        for condition in AQI[PM["P1"]].keys():
-            if eval(condition%mean_p1):
-                aqi_p1 = AQI[PM["P1"]][condition]
-                break
+        aqi_p1 = aqi(mean_p1, PM10_RANGES)
     aqi_p2 = 0
     if not pd.isna(mean_p2):  # Check if mean_p2 is not NaN which means whole column is NaN
-        for condition in AQI[PM["P2"]].keys():
-            if eval(condition%mean_p2):
-                aqi_p2 = AQI[PM["P2"]][condition]
-                break
+        aqi_p2 = aqi(mean_p2, PM25_RANGES)
+
     row = df.iloc[0]
     return [date,
             row.get("sensor_type", None),
@@ -132,8 +105,8 @@ for _ in range(3):
             try:
                 l.append(convert_AQI(folder + filename, date))
                 i+=1
-                #if i == 5:
-                #    break
+                if i == 2000:
+                    break
             except Exception as e:
                 not_w.append(filename)
 

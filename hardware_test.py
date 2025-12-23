@@ -26,6 +26,7 @@ instanceType = [
     "c6a.large",
     "c6in.large"
 ]
+instanceType = ["c6in.large"]
 # EC2 client setup
 config = Config(
         retries = {

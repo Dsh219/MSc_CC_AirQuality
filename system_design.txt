@@ -168,6 +168,17 @@ Model:
                 Every 12 am, clear DynamoDB. use ttl for clear
                 Every hour, update DynanoDB.
 
+
+            DynanoDB:
+                geo,date,type,pm10,pm2_5,altitude,expires_at
+                Lat_Lon_id(String), date(String:ISO 8601format'2025-12-01T00:00:00Z'),type(string), PM10(number), PM2_5(number), altitude(string), expires_at(number)
+
+
+
+            API Gateway for Middleman: (are metered in 512 KB increments)
+                First 300 million => $1 per million 
+                after => $0.9 per million
+
 Test:
     1. K6 
     2. AWS offical load test.
