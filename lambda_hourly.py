@@ -16,20 +16,29 @@ def lambda_handler(event, context):
         for high, score in ranges:
             if value <= high:
                 return score
-            
-    with requests.urlopen(url) as resp:
-        data = json.loads(resp.read().decode())
+    for t in range(5):  # Retry up to 5 times
+        try:
+            with requests.urlopen(url) as resp:
+                data = json.loads(resp.read().decode())
+            break 
+        except:
+            if t == 4:
+                return {
+                    "statusCode": 500,
+                    "body": json.dumps("Failed to fetch data after multiple attempts.")
+                }
+            pass 
 
     dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("MyTable")
+    table = dynamodb.Table("DailyAQI") # DynamoDB table name from setup.py
     num = 0
     with table.batch_writer() as batch:
         for Each in data:
             Type = Each['sensor']['sensor_type']['name']
             if Type.upper() in pmsensors:
                 dic={}
-                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{Each['id']}"
-                dic["timestamp"] = f"{Each['timestamp'].replace(" ","T")}" + "Z"
+                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{num}" # id duplicated using num instead
+                dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
                 dic["type"] = Type
                 dic["PM10"] = 0
                 dic["PM2.5"] = 0
@@ -45,7 +54,7 @@ def lambda_handler(event, context):
                         except Exception:
                             pass
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
-                dic["expires_at"] = int(time.time() + 3600*24) 
+                dic["expires_at"] = int(time.time() + 3600*24)  # 24 hours TTL
                 batch.put_item(Item=dic)
                 num += 1
 

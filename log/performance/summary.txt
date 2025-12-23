@@ -1,0 +1,17 @@
+for converting 10675 files at the same time
+type time_secs
+t3.large 6048.14
+t3.small 6000.86 < 
+t3a.medium 6070.72 <
+c6a.large 5945.18 < 
+t3.micro  5992.76 <
+c6in.large 5946.80 <
+
+
+for 2000 files
+c6in.large;1061.03;1061.34;1165.93
+t3.micro;1066.71;1068.38;1066.53
+c6a.large;1059.87;1063.01;1062.13
+t3a.medium;1079.45;1080.09;1079.64
+t3.small;1070.21;1069.63;1070.23
+t3.large;1076.69;1074.35;1070.46
