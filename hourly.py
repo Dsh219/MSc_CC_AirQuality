@@ -35,9 +35,15 @@ def lambda_handler(event, context):
                 dic["PM2.5"] = 0
                 for measurement in Each['sensordatavalues']:
                     if measurement['value_type'] == "P1":
-                        dic["PM10"] = aqi(measurement['value'], PM10_RANGES)
+                        try:
+                            dic["PM10"] = aqi(float(measurement['value']), PM10_RANGES)
+                        except Exception:
+                            pass    
                     elif measurement['value_type'] == "P2":
-                        dic["PM2.5"] = aqi(measurement['value'], PM25_RANGES)
+                        try:
+                            dic["PM2.5"] = aqi(float(measurement['value']), PM25_RANGES)
+                        except Exception:
+                            pass
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
                 dic["expires_at"] = int(time.time() + 3600*24) 
                 batch.put_item(Item=dic)
