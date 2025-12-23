@@ -183,6 +183,14 @@ done        DynanoDB:
                 First 300 million => $1 per million 
                 after => $0.9 per million
 
+To-do:
+    1. Start to convert a year folder as my design 
+    2. Get PM raw csv for 2024 to S3 
+    3. test if lambda can handle whole day conversion
+    4. daily job at 5am/530 and email. 
+    5. frontend + api gate.
+
+
 Test:
     1. K6 
     2. AWS offical load test.

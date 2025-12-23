@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import requests
-import json
 import os
 import re
 import pandas as pd
+import time 
 import logging
+import sys
+
+
+instance = sys.argv[1]  # instance type for log file
 scriptname = os.path.basename(__file__)
-logname = f"./log/{scriptname}.log"
+logname = f"./{instance}.log"
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=logname, 
                     encoding='utf-8',
@@ -14,40 +18,29 @@ logging.basicConfig(filename=logname,
                     level=logging.INFO,
                     format = '%(name)s-%(levelname)s: %(message)s'
                     )
-with open("./data/PMsensors.json","r",encoding="utf-8") as f:
-    pmsensors = json.load(f)
+pmsensors = [
+ "SDS011",
+ "SPS30",
+ "PMS5003",
+ "PMS7003",
+ "PMS1003",
+ "HPM",
+ "PPD42NS",
+ "SDS021",
+ "PMS3003",
+ "PMS6003",
+ "NEXTPM"
+]
 
-PM = {
-    "P1" : "PM10",
-    "P2" : "PM2.5"
-}
+PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5), 
+               (53, 6), (58, 7), (64, 8), (70, 9), (float('inf'), 10) ]
+PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
+              (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
 
-AQI = {
-    "PM2.5" : {
-         "0<=%f<=11" : 1,
-        "12<=%f<=23" : 2,
-        "24<=%f<=35" : 3,
-        "36<=%f<=41" : 4,
-        "42<=%f<=47" : 5,
-        "48<=%f<=53" : 6,
-        "54<=%f<=58" : 7,
-        "59<=%f<=64" : 8,
-        "65<=%f<=70" : 9,
-        "71<=%f" : 10
-    },
-    "PM10" : {
-         "0<=%f<=16" : 1,
-        "17<=%f<=33" : 2,
-        "34<=%f<=50" : 3,
-        "51<=%f<=58" : 4,
-        "59<=%f<=66" : 5,
-        "67<=%f<=75" : 6,
-        "76<=%f<=83" : 7,
-        "84<=%f<=91" : 8,
-        "92<=%f<=100" : 9,
-       "101<=%f" : 10
-    }
-}
+def aqi(value:float, ranges:list) -> int:
+    for high, score in ranges:
+        if value <= high:
+            return score
 
 def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
     for attempt in range(retries):
@@ -69,65 +62,73 @@ def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
     except TypeError: # in case of non-numeric data, e.g. unknown
         df["P2"] = pd.to_numeric(df["P2"], errors="coerce") 
         mean_p2 = df["P2"].mean()
-    aqi_p1 = "NA"
+    aqi_p1 = 0
     if not pd.isna(mean_p1): # Check if mean_p1 is not NaN which means whole column is NaN
-        for condition in AQI[PM["P1"]].keys():
-            if eval(condition%mean_p1):
-                aqi_p1 = AQI[PM["P1"]][condition]
-                break
-    aqi_p2 = "NA"
+        aqi_p1 = aqi(mean_p1, PM10_RANGES)
+    aqi_p2 = 0
     if not pd.isna(mean_p2):  # Check if mean_p2 is not NaN which means whole column is NaN
-        for condition in AQI[PM["P2"]].keys():
-            if eval(condition%mean_p2):
-                aqi_p2 = AQI[PM["P2"]][condition]
-                break
+        aqi_p2 = aqi(mean_p2, PM25_RANGES)
+
     row = df.iloc[0]
-    return [row.get("sensor_id", None),
+    return [date,
             row.get("sensor_type", None),
-            row.get("location", None),
             row.get("lat", None),
             row.get("lon", None),
             row.get("altitude", None),
-            date,
             aqi_p1,
             aqi_p2
             ]
 
-folder = "https://archive.sensor.community/2025-12-19/"
-logger.info(f">>>>> Download a day folder from {folder}")
-response = requests.get(folder)
-try:
-    response.raise_for_status()  # raises error if request failed
-except requests.exceptions.HTTPError as e:
-    logger.error(f"Request failed: {e}")
-    raise Exception(f"Download request failed, check log file for details --> {logname}")
-html = response.text
-pattern = re.compile(r'<a href="([^"]+\.csv(?:\.gz)?)">', re.IGNORECASE)
-hrefs = pattern.findall(html)
+from datetime import date, timedelta
+import os
+start = date(2025, 1, 1)
+end = date(2025, 3, 1)
 
-l = []
-not_w = []
-i = 0
-a = 0
-import time 
-st = time.time()
-for filename in hrefs:
-    date,Type,_ = filename.split("_",2)
-    if Type.upper() in pmsensors:
-        a+=1
-        try:
-            l.append(convert_AQI(folder + filename, date))
-            i+=1
-            print(f"{i}/{a} processed.\r", end="")
-        except Exception as e:
-            not_w.append(filename)
+current = start
+while current <= end:
+    yr = current.year
+    mo = f"{current.month:02d}"
+    dy = f"{current.day:02d}"
+    folder = f"https://archive.sensor.community/{yr}-{mo}-{dy}/"
+    logger.info(f">>>>> Download a day folder from {folder}")
+    response = requests.get(folder)
+    try:
+        response.raise_for_status()  # raises error if request failed
+    except requests.exceptions.HTTPError as e:
+        logger.error(f"Request failed: {e}")
+        raise Exception(f"Download request failed, check log file for details --> {logname}")
+    html = response.text
+    pattern = re.compile(r'<a href="([^"]+\.csv(?:\.gz)?)">', re.IGNORECASE)
+    hrefs = pattern.findall(html)
 
-dt = time.time() - st
-logger.info(f"Processed {i} out of {a} files in {dt:.2f} seconds.")
-logger.info(f"Files not processed for 2025-12-19: {not_w}")
+    l = []
+    not_w = []
+    i = 0
+    a = 0
 
-logger.info(f"Saving results to ./data/AQI_2025-12-19.csv")
-cols = ["sensor_id", "sensor_type", "location", "lat", "lon", "altitude", "date", "PM10", "PM2.5"]
-ndf = pd.DataFrame(l, columns=cols)
-ndf.to_csv("./data/AQI_2025-12-19.csv", index=False)
+    st = time.time()
+    for filename in hrefs:
+        date,Type,_ = filename.split("_",2)
+        if Type.upper() in pmsensors:
+            a+=1
+            try:
+                l.append(convert_AQI(folder + filename, date))
+                i+=1
+                #if i == 2000:
+                #    break
+            except Exception as e:
+                not_w.append(filename)
 
+
+
+    logger.info(f"Saving results to ./AQI.parquet")
+    cols = ["date", "sensor_type", "lat", "lon", "altitude",  "PM10", "PM2_5"]
+    ndf = pd.DataFrame(l, columns=cols)
+    folder_path = f"../s3/year={yr}/month={mo}/day={dy}"
+    os.makedirs(folder_path, exist_ok=True)
+    ndf.to_parquet(f"{folder_path}/data.parquet", engine="pyarrow", compression="snappy")
+
+    dt = time.time() - st
+    logger.info(f"Processed {i} out of {a} files in {dt:.2f} seconds.")
+    logger.info(f"Files not processed for {current}: {not_w}")
+    current += timedelta(days=1)
