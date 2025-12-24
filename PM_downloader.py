@@ -1,8 +1,18 @@
-import os
 import time
 import requests
-from concurrent.futures import ThreadPoolExecutor
 import re
+import logging
+import os
+
+scriptname = os.path.basename(__file__)
+logname = f"./log/{scriptname}.log"
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=logname, 
+                    encoding='utf-8',
+                    filemode="w",
+                    level=logging.INFO,
+                    format = '%(name)s-%(levelname)s: %(message)s'
+                    )
 
 folder = f"https://archive.sensor.community/2025-12-19/"
 local = "../s3/"
@@ -44,18 +54,19 @@ for filename in hrefs:
     if Type.upper() in pmsensors:
         a+=1
         local_path = local + "2025-12-19/" + filename
-       # os.makedirs(local_path, exist_ok=True)
-        try:
-            response = requests.get(folder + filename, timeout=120)
-            with open(local_path, 'wb') as f:
-                f.write(response.content)
-            i+=1
-            print(f" done: {i}/{a} files processed\r", end='', flush=True)
-        except Exception as e:
-            not_w.append(filename)
+
+        for t in range(5):
+            try:
+                response = requests.get(folder + filename, timeout=120)
+                with open(local_path, 'wb') as f:
+                    f.write(response.content)
+                i+=1
+
+            except Exception as e:
+                if t == 4:
+                    not_w.append(filename)
 
 current = "2015-12-19"
 dt = time.time() - st
-print(f"\nProcessed {i} out of {a} files in {dt:.2f} seconds. for date {current}")
-print(f"Files not processed for {current}: {not_w}")
-print(f" done: {i}/{a} files processed in {dt:.2f} seconds.\r", end='', flush=True)
+logger.info(f"\nProcessed {i} out of {a} files in {dt:.2f} seconds. for date {current}")
+logger.info(f"Files not processed for {current}: {not_w}")
