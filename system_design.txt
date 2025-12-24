@@ -23,7 +23,7 @@ Storage:
     Converted CSV file for a day with only PM sensors ~ 600 KB
     for all data so far = 600 * 3733 /1024/1024 = 2.14GB
 
-    Converted to json for a day, there are 10675 sensors, save the AQI as json formatted shown in ./data/test.json 
+    Converted to json for a day, there are 10677 sensors, save the AQI as json formatted shown in ./data/test.json 
     for all data so far = 51 B * 10675 * 3733 / 1024 /1024 /1024 = 1.89 GB
         |->> for converting the all PM data on single t3.micro : 10675 / 5000 * 2719.28(s) * 3733 / 3600 = ~6000 hrs 
         |->> 6000 hrs * 0.0104 = $62.4  
