@@ -91,14 +91,15 @@ while current < end:
     dy = f"{current.day:02d}"
     folder = f"https://archive.sensor.community/{yr}-{mo}-{dy}/"
     logger.info(f">>>>> Download a day folder from {folder}")
-    
+    print(f"Processing date: {yr}-{mo}-{dy}...\r", end='', flush=True)
     for t in range(5):
         try:
             response = requests.get(folder)
             response.raise_for_status()  # raises error if request failed
             break
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
             logger.error(f"Request failed: {e}")
+            time.sleep(2)
             if t == 4:  
                 skip = True
                 logger.error(f"All 5 attempts failed for URL: {folder}")
@@ -130,11 +131,12 @@ while current < end:
     dt = time.time() - st
     logger.info(f"Processed {i} out of {a} files in {dt:.2f} seconds. for date {current}")
     logger.info(f"Files not processed for {current}: {not_w}")
+    print(f"{yr}-{mo}-{dy} done: {i}/{a} files processed in {dt:.2f} seconds.\r", end='', flush=True)
     current += timedelta(days=1)
 
     if mo != f"{current.month:02d}":
         folder_path = f"../s3/year={yr}/month={mo}"
-        print(f"Finished {yr}={mo}")
+        print(f"\nFinished {yr}={mo}")
         logger.info(f"Saving monthly results to {folder_path}/data.parquet")
         cols = ["date", "sensor_type", "lat", "lon", "altitude",  "PM10", "PM2_5"]
         ndf = pd.DataFrame(monthly_data, columns=cols)

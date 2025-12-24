@@ -1,1 +1,16 @@
 __main__-INFO: >>>>> Download a day folder from https://archive.sensor.community/2025-01-01/
+__main__-WARNING: Attempt 1 failed: Remote end closed connection without response
+__main__-WARNING: Attempt 1 failed: Remote end closed connection without response
+__main__-WARNING: Attempt 1 failed: IncompleteRead(40000 bytes read, 13654 more expected)
+__main__-WARNING: Attempt 1 failed: IncompleteRead(40000 bytes read, 3307 more expected)
+__main__-WARNING: Attempt 1 failed: IncompleteRead(32000 bytes read, 11464 more expected)
+__main__-INFO: Processed 11640 out of 11640 files in 5033.00 seconds. for date 2025-01-01
+__main__-INFO: Files not processed for 2025-01-01: []
+__main__-INFO: >>>>> Download a day folder from https://archive.sensor.community/2025-01-02/
+__main__-WARNING: Attempt 1 failed: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond>
+__main__-WARNING: Attempt 1 failed: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond>
+__main__-WARNING: Attempt 1 failed: <urlopen error [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond>
+__main__-WARNING: Attempt 2 failed: <urlopen error [WinError 10053] An established connection was aborted by the software in your host machine>
+__main__-WARNING: Attempt 1 failed: IncompleteRead(32000 bytes read, 9050 more expected)
+__main__-WARNING: Attempt 1 failed: <urlopen error [WinError 10053] An established connection was aborted by the software in your host machine>
+__main__-WARNING: Attempt 1 failed: IncompleteRead(32000 bytes read, 13814 more expected)
