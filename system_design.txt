@@ -166,7 +166,6 @@ Model:
             use S3 to store older data (covnerted from monthly data)
             use DynamoDB to store two days data (showing AQI, store the value, cal the AQI on demand, since the data is calculate per 24 hrs.) 
 
-
             Daily mechanism includes:
                 Every 12 am, update data from 2 days ago 
 done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
