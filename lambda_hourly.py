@@ -49,7 +49,7 @@ def lambda_handler(event, context):
                 if not valid:
                     continue
 
-                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{Each['id']}" # id duplicated using num instead
+                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{Each['id']}" # unique id with filter on P1 and P2 introduced above
                 dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
                 dic["type"] = Type
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
