@@ -29,15 +29,14 @@ Storage:
         |->> 6000 hrs * 0.0104 = $62.4  
         |->> for converting the 20%(2024-2025) PM data => 6000*0.2 = 1200 hrs ~ $12.48 
 
-data features:
+!!!data features:
     some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
     some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
     some sensors are in the same location <= lat 51.622  lon 5.526
     1hr json has dublicate id , ; e.g. 27557754607, 
-                          some has wrong data for PM sensors: 27557778632      
-Website host:
+                    some has wrong data for PM sensors: 27557778632
 
-Function:
+
 
 Load balance:
     Test : K6   https://k6.io/open-source/
@@ -132,7 +131,7 @@ Data preparation:
                 s3://aqi-data/year=2025/month=10/day=11/data.parquet 
 
 
-doing   2. try 3 VM models for different price and time. 
+done   2. try 3 VM models for different price and time. 
             AMI = Amazon Linux 2023 kernel-6.1 AMI {ami-068c0051b15cdb816}
             instance type:
                 1. compare memory
@@ -180,11 +179,12 @@ Model:
                 Every 3 am, update data from 2 days ago 
 done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
 done            Every hour HH:30, update DynanoDB. (data got from lambda console tesk)
-                    |--> Duration: 52604.96 ms	Billed Duration: 52918 ms
-                    |--> Duration: 50200.12 ms	Billed Duration: 50513 ms
+                    |--> Duration: 49594.55 ms	Billed Duration: 49889 ms
+                    |--> Duration: 47653.61 ms	Billed Duration: 47654 ms
                     |--> Duration: 47626.31 ms	Billed Duration: 47627 ms
-                    |--> Duration: 51315.16 ms	Billed Duration: 51616 ms
-                    |--> Duration: 50892.71 ms	Billed Duration: 51186 ms
+                    |--> Duration: 47339.39 ms	Billed Duration: 47340 ms
+
+                    
 
 done        DynanoDB:
                 geo,date,type,pm10,pm2_5,altitude,expires_at
@@ -196,13 +196,21 @@ done        DynanoDB:
                 First 300 million => $1 per million 
                 after => $0.9 per million
 
-To-do:
-    1. Start to convert a year folder as my design 
-    2. Get PM raw csv for 2024 to S3 
-    3. test if lambda can handle whole day conversion
-    4. daily job at 5am/530 and email. 
-    5. frontend + api gate.
-        for 
+>>>To-do:
+            0. find_out mean sensor per upload :
+                average size (106.02 bytes)
+                10433 +
+ongoing     1. Start to convert a year folder as my design by using monthly 
+  
+            2. test if lambda can handle whole day conversion
+                    no => it is pandas and pyarrow, require more memory 
+
+            4. daily job at 5am/530 and email. 
+                convert from DynamoDB, not the url outside
+
+            5. frontend + api gate.
+
+            6. test from K6 on loads
 
 
 Test:
@@ -242,4 +250,5 @@ Scrtips:
 
 What can be improved:
     1. a way to spot new sensor type
+    2. monthly archive missing some sensors, e.g  SPS30, SDS021,NextPM
 

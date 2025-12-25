@@ -4,12 +4,12 @@ Data format:
         daily in csv only the first column and separate by <;> 
 
 Progress Steps:
-	1. Design two methods for this project:
-			i. using aws services only
-			ii. using EC2 and hard code everything
+	1. Design one method:
+		serverless using S3 + API gateway + DynanoDB + Athena + Lambda
 
 	2. Find a way to store the sensor data    =<<<<<!!!!!!
-		for all three formats.
+		using S3 for older data, 
+		DynanoDB for two days data 
 
 	3. Program the setup script for the solution. 
 		Boto3 
@@ -18,8 +18,8 @@ Progress Steps:
 		HTML and CSS 
 
 	5. Test the solution and elasticity of the solutions.   <=== find the way of doing it from internet.
-		Workload balance
-		Scalability
+		Workload balance (handle by S3)
+		Scalability 
 		Cost
 
 	 6. write Readme
@@ -41,12 +41,17 @@ Additional task:
 	1. experimental methodology test solution.
 	2. why choose this architecture.
 	3. computational requirements, costs or other factors drove you choice of aws services and how you measured success.
+		three method for AQI :
+			convert AQI on demand
+			pre-process daily CSV/csv.gz 
+			pre-process monthly zip 
+
 	4. provide a script to configures the AWS env
 	5. Briefly discuss the implications of data security and sovereignty with respect to the environmental sensor.
 
 Things to decide:
-	Storage method or database 
-	Where to host the website page
+x	Storage method or database 
+x   Where to host the website page
 	load balance scheme
 	how to measure metrics for data usage
 	come up with solution policy matches the AWS framework pillars
@@ -54,6 +59,7 @@ Things to decide:
 important data:
 	all raw sensors daily csvs ~ 428.61MB
 	all raw sensors houly json  ~ 9.81MB
+		but only 10344 valid PM sensors
 	all PM snesors monthly zip ~ 328.42 GB from 2015-10 to 2025-11
 	archieve convertion: 
 		instance type:
@@ -68,8 +74,24 @@ important data:
 		=   t3a.medium 2 4GB  $0.0376 Up to 5 Gb
 			c6a.large  2 4GB  $0.0765 Up to 10 Gb
 			c6in.large 2 4GB  $0.1134 Up to 25 Gb
-	
-	
+
+data features:
+    some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
+    some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
+    some sensors are in the same location <= lat 51.622  lon 5.526
+    1hr json has dublicate id , ; e.g. 27557754607, 
+                    some has wrong data for PM sensors: 27557778632 (snapshot in ./img)
+
+
+S3 data structure:
+	~/year={}/month={}/day={}/data.parquet 
+	|-> in parquet:
+			date; lat; lon; alt; type; PM10(AQI); PM2_5(AQI); 
+
+DynanoDB structure:
+	geo,date,type,pm10(reading),pm2_5(reading),altitude,expires_at
+	Lat_Lon_id(String), date(String:ISO 8601format'2025-12-01T00:00:00Z'),type(string), PM10(decimal), PM2_5(decimal), altitude(string), expires_at(number)
+
 
 
 Report:
