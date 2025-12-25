@@ -3,8 +3,8 @@ import urllib.request as requests
 import boto3
 import time
 
+
 def lambda_handler(event, context):
-    url = "https://data.sensor.community/static/v2/data.1h.json"
     pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
         "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
         "PMS6003","NEXTPM"]
@@ -16,6 +16,9 @@ def lambda_handler(event, context):
         for high, score in ranges:
             if value <= high:
                 return score
+            
+    base_url = "https://archive.sensor.community/"    
+            
     for t in range(5):  # Retry up to 5 times
         try:
             with requests.urlopen(url) as resp:
