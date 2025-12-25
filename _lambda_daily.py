@@ -2,26 +2,39 @@ import json
 import urllib.request as requests
 import boto3
 import time
+from datetime import datetime, timedelta
+
+pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
+        "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
+        "PMS6003","NEXTPM"]
+
+PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5), 
+            (53, 6), (58, 7), (64, 8), (70, 9), (float('inf'), 10) ]
+PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
+            (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
+def aqi(value:float, ranges:list) -> int:
+    for high, score in ranges:
+        if value <= high:
+            return score
+
+# Get the day before yesterday's date in YYYY-MM-DD format
+day_before_yesterday = (datetime.today() - timedelta(days=2))
+yr = day_before_yesterday.year
+mo = f"{day_before_yesterday.month:02d}"
+da = f"{day_before_yesterday.day:02d}"
+
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table("DailyAQI") # DynamoDB table name from setup.py
 
 
 def lambda_handler(event, context):
-    pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
-        "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
-        "PMS6003","NEXTPM"]
-    PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5), 
-               (53, 6), (58, 7), (64, 8), (70, 9), (float('inf'), 10) ]
-    PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
-                (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
-    def aqi(value:float, ranges:list) -> int:
-        for high, score in ranges:
-            if value <= high:
-                return score
-            
-    base_url = "https://archive.sensor.community/"    
+    
+    
+
             
     for t in range(5):  # Retry up to 5 times
         try:
-            with requests.urlopen(url) as resp:
+            with requests.urlopen(base_url) as resp:
                 data = json.loads(resp.read().decode())
             break 
         except:
@@ -32,8 +45,7 @@ def lambda_handler(event, context):
                 }
             pass 
 
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("DailyAQI") # DynamoDB table name from setup.py
+    
     num = 0
     with table.batch_writer() as batch:
         for Each in data:
@@ -43,7 +55,7 @@ def lambda_handler(event, context):
                 dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{num}" # id duplicated using num instead
                 dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
                 dic["type"] = Type
-                dic["PM10"] = 0
+                dic["PM10"] = 0 
                 dic["PM2.5"] = 0
                 for measurement in Each['sensordatavalues']:
                     if measurement['value_type'] == "P1":

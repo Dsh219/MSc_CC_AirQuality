@@ -2,6 +2,7 @@ import json
 import urllib.request as requests
 import boto3
 import time
+from decimal import Decimal
 
 def lambda_handler(event, context):
     url = "https://data.sensor.community/static/v2/data.1h.json"
@@ -29,22 +30,28 @@ def lambda_handler(event, context):
             Type = Each['sensor']['sensor_type']['name']
             if Type.upper() in pmsensors:
                 dic={}
-                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{num}" # id duplicated using num instead
-                dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
-                dic["type"] = Type
                 dic["PM10"] = 0
                 dic["PM2_5"] = 0
+                valid = False
                 for measurement in Each['sensordatavalues']:
                     if measurement['value_type'] == "P1":
+                        valid = True
                         try:
-                            dic["PM10"] = float(measurement['value'])
+                            dic["PM10"] = Decimal(str(measurement['value']))
                         except Exception:
                             pass    
                     elif measurement['value_type'] == "P2":
+                        valid = True
                         try:
-                            dic["PM2_5"] = float(measurement['value'])
+                            dic["PM2_5"] = Decimal(str(measurement['value']))
                         except Exception:
                             pass
+                if not valid:
+                    continue
+
+                dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{Each['id']}" # id duplicated using num instead
+                dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
+                dic["type"] = Type
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
                 dic["expires_at"] = int(time.time() + 3600*24*2)  # 48 hours TTL
                 batch.put_item(Item=dic)
