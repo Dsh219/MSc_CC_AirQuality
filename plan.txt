@@ -51,6 +51,24 @@ Things to decide:
 	how to measure metrics for data usage
 	come up with solution policy matches the AWS framework pillars
 
+important data:
+	all raw sensors daily csvs ~ 428.61MB
+	all raw sensors houly json  ~ 9.81MB
+	all PM snesors monthly zip ~ 328.42 GB from 2015-10 to 2025-11
+	archieve convertion: 
+	 instance type:
+		1. compare memory
+		Type   vCPU  memory  Hourly_cost  network performance 
+		t3.micro  2  1GB  $0.0104 Up to 5 Gb
+		t3.small  2  2GB  $0.0208 Up to 5 Gb
+	=   t3a.medium 2 4GB  $0.0376 Up to 5 Gb
+		t3.large  2  8GB  $0.0832 Up to 5 Gb
+
+		2. compare network performance 
+	=   t3a.medium 2 4GB  $0.0376 Up to 5 Gb
+		c6a.large  2 4GB  $0.0765 Up to 10 Gb
+		c6in.large 2 4GB  $0.1134 Up to 25 Gb
+
 
 Report:
 • 10% Introduction, conclusions

@@ -14,7 +14,7 @@ logging.basicConfig(filename=logname,
                     format = '%(name)s-%(levelname)s: %(message)s'
                     )
 
-folder = f"https://archive.sensor.community/2025-12-19/"
+folder = f"https://archive.sensor.community/csv_per_month/2025-11/"
 local = "../s3/"
 for t in range(5):
     try:
@@ -41,7 +41,7 @@ pmsensors = [
 ]
 
 html = response.text
-pattern = re.compile(r'<a href="([^"]+\.csv(?:\.gz)?)">', re.IGNORECASE)
+pattern = re.compile(r'<a href="([^"]+\.zip)"', re.IGNORECASE)
 hrefs = pattern.findall(html)
 
 not_w = []
@@ -50,23 +50,33 @@ a = 0
 
 st = time.time()
 for filename in hrefs:
-    date_,Type,_ = filename.split("_",2)
+    date_,Typezip = filename.split("_",1)
+    Type,_ = Typezip.split(".",1)
     if Type.upper() in pmsensors:
         a+=1
-        local_path = local + "2025-12-19/" + filename
-
+        local_path = local + "2025-11/" + filename
         for t in range(5):
             try:
-                response = requests.get(folder + filename, timeout=120)
-                with open(local_path, 'wb') as f:
-                    f.write(response.content)
-                i+=1
+                with requests.get(folder + filename, stream=True) as r:
+                    r.raise_for_status()
+                    total = int(r.headers.get("Content-Length", 0))
+                    downloaded = 0
 
+                    with open(local_path, "wb") as f:
+                        for chunk in r.iter_content(chunk_size=1024 * 1024*8):
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                i+=1 
+                break               
             except Exception as e:
+                logger.warning(f"Failed to download {local_path} for {t}th times: {e}")
+                if os.path.exists(local_path):
+                    os.remove(local_path)
                 if t == 4:
                     not_w.append(filename)
 
-current = "2015-12-19"
+current = "2025-11"
 dt = time.time() - st
 logger.info(f"\nProcessed {i} out of {a} files in {dt:.2f} seconds. for date {current}")
 logger.info(f"Files not processed for {current}: {not_w}")
