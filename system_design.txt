@@ -148,7 +148,7 @@ doing   2. try 3 VM models for different price and time.
         {get cost and time for each methods}
             1. use monthly csv for achieve data up to 2025-11 (lose some data)
             2. 
-            
+
             1.S3 with my file system for 2025, 
             2.S3 with raw PM csv files uploaded for 2024 
             3.Other files, dont store files in S3, direct access to sensor data site and convertion on fly.
@@ -163,12 +163,13 @@ Model:
     model is :
         serverless approach:
             use S3 to host Frontend
-            use S3 to store older data 
-done        use DynamoDB to store daily data 
+            use S3 to store older data (covnerted from monthly data)
+            use DynamoDB to store two days data (showing AQI, store the value, cal the AQI on demand, since the data is calculate per 24 hrs.) 
+
+
             Daily mechanism includes:
-                Every 5 am, update data from yersterday (since data from yersterday avaiable after 4 am)
-                    5 am failed, try 0530, if failed again, email 
-done            Every 12 am, clear DynamoDB. use ttl for clear
+                Every 12 am, update data from 2 days ago 
+done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
 done            Every hour HH:30, update DynanoDB. (data got from lambda console tesk)
                     |--> Duration: 52604.96 ms	Billed Duration: 52918 ms
                     |--> Duration: 50200.12 ms	Billed Duration: 50513 ms
