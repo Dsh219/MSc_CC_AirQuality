@@ -199,7 +199,7 @@ done        DynanoDB:
 >>>To-do:
             0. find_out mean sensor per upload :
                 average size (106.02 bytes)
-                10433 +
+                10433 + 
 ongoing     1. Start to convert a year folder as my design by using monthly 
   
             2. test if lambda can handle whole day conversion
