@@ -33,8 +33,8 @@ pmsensors = [
 folder = f"https://archive.sensor.community/csv_per_month/"
 local = "../s3/"
 
-start = date(2025, 1, 1)
-end = date(2025, 11, 1)
+start = date(2023, 1, 1)
+end = date(2025, 1, 1)
 current = start
 while current < end:
     skip = False
