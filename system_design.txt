@@ -178,7 +178,7 @@ Model:
             Daily mechanism includes:
                 Every 3 am, update data from 2 days ago 
 !!!                 |---> using pandas and pyarrow are not able to user lambda,has to start a ec2 
-                    |---> only using pyarrow is possible. it is only 138 MB < 250 MB and zip 41.6MB
+                    |---> only using pyarrow is possible. it is only 154 MB < 250 MB and zip 47MB   for python3.11
 
 done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
 done            Every hour HH:30, update DynanoDB. (data got from lambda console tesk)

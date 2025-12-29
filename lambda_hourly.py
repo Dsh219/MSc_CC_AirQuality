@@ -3,6 +3,7 @@ import urllib.request as requests
 import boto3
 import time
 from decimal import Decimal
+import os
 # Lambda function to fetch hourly air quality data and store in DynamoDB
 # DynamoDB table column names:
 #   geo (string) - combination of latitude, longitude, and unique sensor id => "lat_lon_id"
@@ -14,14 +15,17 @@ from decimal import Decimal
 #   expires_at (number) - TTL attribute for automatic expiration
 # The table is created in setup.py
 
-def lambda_handler(event, context):
-    url = "https://data.sensor.community/static/v2/data.1h.json"
-    pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
+url_1hr = "https://data.sensor.community/static/v2/data.1h.json"
+pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
         "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
         "PMS6003","NEXTPM"]
+dynamodb = boto3.resource("dynamodb")
+table = dynamodb.Table(os.environ["DYNAMODB_TABLE"]) # DynamoDB table name from setup.py
+
+def lambda_handler(event, context):
     for t in range(5):  # Retry up to 5 times
         try:
-            with requests.urlopen(url) as resp:
+            with requests.urlopen(url_1hr) as resp:
                 data = json.loads(resp.read().decode())
             break 
         except:
@@ -31,9 +35,6 @@ def lambda_handler(event, context):
                     "body": json.dumps("Failed to fetch data after multiple attempts.")
                 }
             pass 
-
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table("DailyAQI") # DynamoDB table name from setup.py
     num = 0
     with table.batch_writer() as batch:
         for Each in data:
@@ -63,7 +64,7 @@ def lambda_handler(event, context):
                 dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
                 dic["type"] = Type
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
-                dic["expires_at"] = int(time.time() + 3600*24*2)  # 48 hours TTL
+                dic["expires_at"] = int(time.time() + 3600*24)  # 24 hours TTL
                 batch.put_item(Item=dic)
                 num += 1
 

@@ -17,6 +17,7 @@ with open('../credentials.txt', 'r') as file:
 region = 'us-east-1'
 
 # Define vars for setup
+python_version = 'python3.11'
 S3_name = 'cloudcomputing-20251222'   # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
@@ -141,11 +142,19 @@ lambdas = {
     'lambda_hourly': {
         'zip': './zips/lambda_hourly.zip',
         'file': 'lambda_hourly.py' 
+    },
+    'lambda_daily': {
+        'zip': './zips/lambda_daily.zip',
+        'file': 'lambda_daily.py'
+    },
+    'pyarrow-layer': {
+        'zip': './zips/daily-layer.zip' # Lambda layer for pyarrow, has to be compressed by a Linux system
     }
 }
+#******************Hourly lambda creation below************************************#
 # Create zip files for Lambda functions
-print("Creating zip files for Lambda functions to ./zips ...")
-    #-Hourly function
+print("Creating zip files for Hourly Lambda function to ./zips ...")
+#-Hourly function
 with zipfile.ZipFile(lambdas['lambda_hourly']['zip'], 'w', zipfile.ZIP_DEFLATED) as z:
     z.write(lambdas['lambda_hourly']['file'], arcname=lambdas['lambda_hourly']['file'])
 
@@ -158,17 +167,74 @@ with open(lambdas['lambda_hourly']['zip'], 'rb') as f:
 
 response = lambdaC.create_function(
     FunctionName='lambda_hourly',
-    Runtime='python3.10',
+    Runtime=python_version,
     Role=role_arn,
     Handler='lambda_hourly.lambda_handler',
     Code={
         'ZipFile': zipped_code
     },
+    Environment={
+        'Variables': {
+            'DYNAMODB_TABLE': dynamodb_name
+        }
+    },
     Timeout=60*2, # 2 minutes > 
     Description='Fetches hourly air quality data and stores in DynamoDB'
 )
 hourlyF_arn = response['FunctionArn'] # hourly Lambda function ARN
-print("Creating Lambda functions << done")
+print("Creating Daily Lambda function << done")
+#******************Hourly lambda creation above************************************#
+
+#******************Daily lambda creation below*************************************#
+# Create Lambda layer for pyarrow
+print("Creating Lambda layer for pyarrow...")
+with open(lambdas['pyarrow-layer']['zip'], 'rb') as f:
+    zipped_code = f.read()
+response = lambdaC.publish_layer_version(
+    LayerName='pyarrow-layer',
+    CompatibleRuntimes=[python_version],
+    Content={
+        'ZipFile': zipped_code
+    },  
+    Description='Lambda layer for pyarrow for daily Lambda function'
+)
+layer_arn = response['LayerVersionArn']
+print("Lambda layer for pyarrow has been created << done")
+
+# Create zip files for Lambda functions
+print("Creating zip files for Daily Lambda function to ./zips ...") 
+#-Daily function
+with zipfile.ZipFile(lambdas['lambda_daily']['zip'], 'w', zipfile.ZIP_DEFLATED) as z:
+    z.write(lambdas['lambda_daily']['file'], arcname=lambdas['lambda_daily']['file'])
+print("Zip files for Lambda functions have been created << done")
+# Create Lambda functions
+print("Creating Lambda functions ...")
+    #-Daily function
+with open(lambdas['lambda_daily']['zip'], 'rb') as f:
+    zipped_code = f.read()
+response = lambdaC.create_function(
+    FunctionName='lambda_daily',
+    Runtime=python_version,
+    Role=role_arn,
+    Layers=[layer_arn],
+    Handler='lambda_daily.lambda_handler',
+    Code={
+        'ZipFile': zipped_code
+    },
+    Environment={
+        'Variables': {
+            'DYNAMODB_TABLE': dynamodb_name,
+            'S3_BUCKET_NAME': S3_name
+        }
+    },
+    MemorySize=1024, # 1 GB
+    Timeout=60*2, # 2 minutes 
+    Description='Fetches daily air quality data from DynamoDB and convert to AQI and store in S3 as Parquet'
+)
+dailyF_arn = response['FunctionArn'] # daily Lambda function ARN
+print("Creating Daily Lambda function << done")
+#******************Daily lambda creation above************************************#
+
 print("Lambda functions have been created successfully... <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
@@ -176,11 +242,12 @@ stage += 1
 print(f">>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger Lambda functions...")
 eventsC = session.client('events')
 
+#***************Hourly lambda EventBridge creation below**************************#
 # Set up EventBridge rule to trigger Lambda at HH:30
-print(f"Setting up EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:30...")
+print(f"Setting up EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:45...")
 response = eventsC.put_rule(
     Name=hourly_rule_name,
-    ScheduleExpression='cron(30 * * * ? *)',
+    ScheduleExpression='cron(45 * * * ? *)',
     State='ENABLED',
     Description='Get hourly air quality data from sensor.community and store in DynamoDB'
 )
@@ -201,7 +268,39 @@ eventsC.put_targets(
         'Arn': hourlyF_arn
     }]
 )
-print("EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:30 has been set... << done")
+print("EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:45 has been set... << done")
+#***************Hourly lambda EventBridge creation above**************************#
+
+#****************Daily lambda EventBridge creation below**************************#
+# Set up EventBridge rule to trigger Lambda at 00:00 daily 
+daily_rule_name = "lambda_daily_trigger"
+print(f"Setting up EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily...")
+response = eventsC.put_rule(    
+    Name=daily_rule_name,
+    ScheduleExpression='cron(0 0 * * ? *)',
+    State='ENABLED',
+    Description='Process daily air quality data from DynamoDB and store in S3 as Parquet'
+)
+dailyR_arn = response['RuleArn'] # daily EventBridge rule ARN
+# Grant EventBridge permission to invoke the Lambda function
+lambdaC.add_permission(
+    FunctionName='lambda_daily',
+    StatementId='eventbridge-invoke-daily-lambda',  # must be unique for each permission
+    Action='lambda:InvokeFunction',
+    Principal='events.amazonaws.com',
+    SourceArn=dailyR_arn
+)
+# Add Lambda function as the target of the EventBridge rule
+eventsC.put_targets(
+    Rule=daily_rule_name,
+    Targets=[{
+        'Id': 'lambda_daily_target',
+        'Arn': dailyF_arn
+    }]
+)
+print("EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily has been set... << done")
+#****************Daily lambda EventBridge creation above**************************#
+
 print("EventBridge rules have been set to trigger Lambda functions <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
