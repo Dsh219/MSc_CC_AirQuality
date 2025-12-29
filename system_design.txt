@@ -1,41 +1,14 @@
 Storage:
     Raw:
-    a day csv ~ 428.61 MB 
-    a hour json ~ 9.81 MB
 
-    Hourly for a day:
-        9.81 * 24 / 1024 = 0.23 GB
-        Cost for two days: 
-            S3 = 0.23 * 2 * 0.023 = $0.01
-            DynanoDB = 0.23 * 2 * 0.25 = $0.115
 
-    Daily csv/csv.gz files:
-    2015-10-1 to 2025-12-20 ~ 3733 days 
-    archieve size = 3733 * 428.61 = 1600001.13 MB = 1562.50 GB = 1.53 TB
-    cost for storing all = 1562.5 * 0.023 = $35.9375
-    for only 2 yrs: 428.61 * 365 *2 / 1024 *0.023 =  $7.03
 
-    Monthly zip files:
-    monthly csv zip => missing SPS30, SDS021,NextPM
-        (447+651+224+410)/1024/1024 + (1+33+34) /1024 + 3.5 = 3.57 GB
-        total 3.57 *12 *10 = 428.4 GB 
-
-    Converted CSV file for a day with only PM sensors ~ 600 KB
-    for all data so far = 600 * 3733 /1024/1024 = 2.14GB
 
     Converted to json for a day, there are 10677 sensors, save the AQI as json formatted shown in ./data/test.json 
     for all data so far = 51 B * 10675 * 3733 / 1024 /1024 /1024 = 1.89 GB
         |->> for converting the all PM data on single t3.micro : 10675 / 5000 * 2719.28(s) * 3733 / 3600 = ~6000 hrs 
         |->> 6000 hrs * 0.0104 = $62.4  
         |->> for converting the 20%(2024-2025) PM data => 6000*0.2 = 1200 hrs ~ $12.48 
-
-!!!data features:
-    some data has value unknown <= 2025-12-19_pms5003_sensor_69756_indoor
-    some sensor has unknown for whole day <= 2025-12-19_sds011_sensor_2710.csv
-    some sensors are in the same location <= lat 51.622  lon 5.526
-    1hr json has dublicate id , ; e.g. 27557754607, 
-                    some has wrong data for PM sensors: 27557778632
-
 
 
 Load balance:
@@ -118,14 +91,10 @@ Lambda:
     Duration cost depends on the amount of memory you allocate to your function. You can allocate any amount of memory to your function between 128 MB and 10,240 MB, in 1 MB increments
 
 =======================================================================================================
-Stages:
-    Data preparation (up-to data online at S3) -> model (serverless) -> Test -> Report
-    !!! get costs for each stage
-
 
 Data preparation:
-    1. use AWS EC2 VM to do the convertions on all data:
-        1. Convertion script
+    1. use AWS EC2 VM to do the convertions on all PM data:
+        1. Convertion script (convert_AQI_ec2.py)
             1.Filter PM sensors out
             1.convert daily PM sensors reading to AQI(24hours-mean) readings in parquet format
                 s3://aqi-data/year=2025/month=10/day=11/data.parquet 
@@ -175,16 +144,15 @@ Model:
             use DynamoDB to store two days data (showing AQI, store the value, cal the AQI on demand, since the data is calculate per 24 hrs.) 
                 create a lambda for convert 24 hrs from the requesting time to AQI when requesting 
 
-            Daily mechanism includes:
-                Every 3 am, update data from 2 days ago 
-!!!                 |---> using pandas and pyarrow are not able to user lambda,has to start a ec2 
+Done        Daily mechanism includes:
+                Every 0 am, update data from yersterday 
                     |---> only using pyarrow is possible. it is only 154 MB < 250 MB and zip 47MB   for python3.11 <= this cause crushes due to older version of Glibc 2.26
                     when create lambda use python 3.12, this will make lambda use os of aws 2023   so the glibc is 2.34 which aligns with the pyarrow layer creator's os
                         |-> memory 1024 MB
                     Run time
                     |--> Duration: 48486.09 ms	Billed Duration: 49394 ms	Memory Size: 1024 MB	Max Memory Used: 309 MB	
                     |--> Duration: 47205.76 ms	Billed Duration: 48164 ms	Memory Size: 1024 MB	Max Memory Used: 308 MB
-                    |--> 
+                    |--> Duration: 46485.84 ms	Billed Duration: 46486 ms	Memory Size: 1024 MB	Max Memory Used: 310 MB
 
 done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
 done            Every hour HH:30, update DynanoDB. (data got from lambda console tesk)
@@ -206,15 +174,15 @@ done        DynanoDB:
                 after => $0.9 per million
 
 >>>To-do:
-            0. find_out mean sensor per upload :
-                average size (106.02 bytes)
-                10433 + 
+            0. find_out mean sensor per upload : 
+
 ongoing     1. Start to convert a year folder as my design by using monthly 
   
             2. test if lambda can handle whole day conversion
                     no => it is pandas and pyarrow, require more memory 
+                    yes => if only pyarrow is used : 
 
-            4. daily job at 5am/530 and email. 
+            4. daily job at 00:00 am. 
                 convert from DynamoDB, not the url outside
 
             5. frontend + api gate.

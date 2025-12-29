@@ -9,7 +9,7 @@ Progress Steps:
 
 	2. Find a way to store the sensor data    =<<<<<!!!!!!
 		using S3 for older data, 
-		DynanoDB for two days data 
+		DynanoDB for 1 day data 
 
 	3. Program the setup script for the solution. 
 		Boto3 
@@ -25,12 +25,11 @@ Progress Steps:
 	 6. write Readme
 
 Must have:
-	1. A mechanism for auto update the database
-	2. AQI convert.
+x	1. A mechanism for auto update the database
+x	2. AQI convert.
 	3. Be able to get/download the data according geographical location and timeframe
-	4. Time the development time as well for different solutions. =<<!!!!
-	5. Measure the current system workload to determine whether a new worker is required. --- a mechanism for introducing new workers. (system load is measured directly from the amount data being downloaded or the number of currently connected clients, or some other criteria.)
-	6. Consider the cost implications of instantiating new workers and explain the reasoning of your design in the report from a cost perspective.
+	NA 4. Time the development time as well for different solutions. =<<!!!!
+	5. Consider the cost implications of instantiating new workers and explain the reasoning of your design in the report from a cost perspective.
 
 Success:
 	1. handle multiple access: 
@@ -56,11 +55,46 @@ x   Where to host the website page
 	how to measure metrics for data usage
 	come up with solution policy matches the AWS framework pillars
 
-important data:
+Data needed:
 	all raw sensors daily csvs ~ 428.61MB
 	all raw sensors houly json  ~ 9.81MB
-		but only 10344 valid PM sensors
-	all PM snesors monthly zip ~ 328.42 GB from 2015-10 to 2025-11
+		|---> but only 10344 valid PM sensors
+		|---> cost:
+!need cal		cost per day for storing a day data in the format i decided : 
+					data a day * $0.25/GB = $
+					DynamoDB => 
+
+				raw S3 => 9.81MB * 24 / 1024 * $0.023/GB = $0.05
+	
+	All daily csv/csv.gz files:
+		from 2015-10-1 to 2025-12-29 ~ 3742 days 
+		3742 * 428.61 = 1603858.62 MB = 1.53TB
+		cost storing in S3:
+			1.53 * 1024 * 0.023 * $0.023 = $36.02
+	
+	Esimated All daily PM sensors csv/csv.gz files after conversion to AQI daily:
+		columns:
+			sensor_id,sensor_type,location,lat,lon,altitude,date,PM10(daily AQI),PM2.5(daily AQI)
+		
+		600 KB (2025-12-19) * 3742 /1024/1024 = 2.14 GB
+		cost:
+			2.14 * $0.023 = $0.049
+
+	All PM sensors monthly zip from 2015-10 to 2025-11: by running html reader get size 
+		=> 328.42 GB
+		= 328.42 GB * $0.023/GB = $7.55
+		BUT! --- missin sensor SPS30, SDS021, NextPM 
+
+
+Decide to use parquet for better query=> 
+	check 
+
+
+Daily data saved as json
+
+
+
+	
 	archieve convertion: 
 		instance type:
 			1. compare memory
