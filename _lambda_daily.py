@@ -12,26 +12,28 @@ PM25_RANGES = [ (11, 1), (23, 2), (35, 3), (41, 4), (47, 5),
             (53, 6), (58, 7), (64, 8), (70, 9), (float('inf'), 10) ]
 PM10_RANGES = [ (16, 1), (33, 2), (50, 3), (58, 4), (66, 5), 
             (75, 6), (83, 7), (91, 8), (100, 9), (float('inf'), 10) ]
+
 def aqi(value:float, ranges:list) -> int:
     for high, score in ranges:
         if value <= high:
             return score
 
 # Get the day before yesterday's date in YYYY-MM-DD format
-day_before_yesterday = (datetime.today() - timedelta(days=2))
-yr = day_before_yesterday.year
-mo = f"{day_before_yesterday.month:02d}"
-da = f"{day_before_yesterday.day:02d}"
+#day_before_yesterday = (datetime.today() - timedelta(days=2))
+#yr = day_before_yesterday.year
+#mo = f"{day_before_yesterday.month:02d}"
+#da = f"{day_before_yesterday.day:02d}"
 
 dynamodb = boto3.resource("dynamodb")
-table = dynamodb.Table("DailyAQI") # DynamoDB table name from setup.py
+table = dynamodb.Table("DailyAQI") 
+
+records=table.scan()
+
+
 
 
 def lambda_handler(event, context):
     
-    
-
-            
     for t in range(5):  # Retry up to 5 times
         try:
             with requests.urlopen(base_url) as resp:

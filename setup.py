@@ -112,6 +112,7 @@ table = dynamodbC.create_table(
             'AttributeName': 'timestamp',
             'AttributeType': 'S'
         }
+
     ],
     BillingMode='PAY_PER_REQUEST'
 )
@@ -154,6 +155,7 @@ print("Creating Lambda functions ...")
     #-Hourly function
 with open(lambdas['lambda_hourly']['zip'], 'rb') as f:
     zipped_code = f.read()
+
 response = lambdaC.create_function(
     FunctionName='lambda_hourly',
     Runtime='python3.10',
