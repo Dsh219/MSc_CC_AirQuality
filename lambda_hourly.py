@@ -3,6 +3,16 @@ import urllib.request as requests
 import boto3
 import time
 from decimal import Decimal
+# Lambda function to fetch hourly air quality data and store in DynamoDB
+# DynamoDB table column names:
+#   geo (string) - combination of latitude, longitude, and unique sensor id
+#   timestamp (string) - ISO 8601 format timestamp of the measurement
+#   type (string) - sensor type
+#   PM10 (number) - PM10 measurement value
+#   PM2_5 (number) - PM2.5 measurement value
+#   altitude (number) - altitude of the sensor location
+#   expires_at (number) - TTL attribute for automatic expiration
+# The table is created in setup.py
 
 def lambda_handler(event, context):
     url = "https://data.sensor.community/static/v2/data.1h.json"
