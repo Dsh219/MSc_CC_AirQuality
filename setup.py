@@ -17,7 +17,7 @@ with open('../credentials.txt', 'r') as file:
 region = 'us-east-1'
 
 # Define vars for setup
-python_version = 'python3.11'
+python_version = 'python3.12'
 S3_name = 'cloudcomputing-20251222'   # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
