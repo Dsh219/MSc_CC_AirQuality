@@ -86,7 +86,7 @@ data features:
 S3 data structure:
 	~/year={}/month={}/day={}/data.parquet 
 	|-> in parquet:
-			date(YYYY-MM-DD); lat; lon; alt; type; PM10(AQI); PM2_5(AQI); 
+			date(YYYY-MM-DD); lat; lon; alt; AQI; 
 
 DynanoDB structure:
 	geo,date,type,pm10(reading),pm2_5(reading),altitude,expires_at
@@ -94,7 +94,7 @@ DynanoDB structure:
 
 Timeline:
 								|---- 00:00 trigger daily lambda
-	00:30 01:30 ... 22:30 23:30 00:30
+	00:45 01:45 ... 22:45 23:45 00:45
 	   |-----                     |-----
 			|------
 					  |------
