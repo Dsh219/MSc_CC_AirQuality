@@ -134,6 +134,11 @@ Timeline:
 					  |------
 					  	    |------
 
+local converter (local_AQI_Mzip.py):
+	for a month 2015-1  => size 1.21MB
+		time: 
+			 226.88097143173218 seconds
+
 
 
 Report:
