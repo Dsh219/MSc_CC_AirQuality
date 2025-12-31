@@ -96,8 +96,8 @@ def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> No
                     shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
     print(f"Unzipped files in {folder_path}")
 
-start = date(2024, 2, 1)
-end = date(2024, 6, 20)
+start = date(2023, 7, 1)
+end = date(2023, 12, 20)
 current = start
 of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
 folder = r"C:\Users\Shenghui\Documents\GitHub\s3"

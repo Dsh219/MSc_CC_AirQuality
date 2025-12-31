@@ -142,6 +142,12 @@ local converter (local_AQI_Mzip.py):
 			220.26050472259521 seconds
 			222.49196219444275 seconds
 			223.07923555374146 seconds
+
+locations:
+	10182 unique locations found.
+	19468 total records processed.
+
+
 Report:
 • 10% Introduction, conclusions
 • 30% Methodology:
