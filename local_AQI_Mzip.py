@@ -2,6 +2,10 @@ import pandas as pd
 import glob
 import os
 import time
+from datetime import date, timedelta
+import zipfile
+import shutil
+st = time.time()
 # P1: PM10, P2: PM2.5
 PM10_bins = [0, 17, 34, 51, 59, 67, 76, 84, 92, 101, float('inf')]
 PM10_labels = [1,2,3,4,5,6,7,8,9,10]
@@ -65,13 +69,48 @@ def process_large_csv_to_parquet(input_folder:str, output_folder:str, chunk_size
     result_df = final_group[['date', 'lat', 'lon', 'AQI']]
     result_df.to_parquet(output_folder, index=False, engine='pyarrow', 
                          compression='snappy', partition_cols=['date'])
+    print(f"Converted all CSVs in {input_folder} to Parquet at {output_folder}")
+
+def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> None:
+    # Unzip all zip files in the given folder to the output directory
+    if output_dir is None:
+        output_dir = folder_path
+
+    os.makedirs(output_dir, exist_ok=True)
+    # Find all zip files in the folder
+    zip_files = glob.glob(os.path.join(folder_path, "*.zip"))
+
+    for zip_file in zip_files:
+        with zipfile.ZipFile(zip_file, "r") as z:
+            for member in z.infolist():
+                if member.is_dir():
+                    continue
+                # Get the filename
+                filename = os.path.basename(member.filename)
+                if not filename:
+                    continue
+                # Construct the target path
+                target_path = os.path.join(output_dir, filename)
+                # Extract file content by chunks to avoid memory issues
+                with z.open(member) as source, open(target_path, "wb") as target:
+                    shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
+    print(f"Unzipped files in {folder_path}")
+
+start = date(2024, 2, 1)
+end = date(2024, 6, 20)
+current = start
+of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
+folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
+
+FromFolder = lambda mF, mo, yr : mF +  f"\{yr}-{mo:02d}" + "\\"
+
+while current <= end:
+    current = date(current.year, current.month, 1)
+    #unzip_files_in_folder(FromFolder(folder, current.month, current.year))
+    process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
+    current += timedelta(days=31)
 
 
-folder = r"C:\Users\Shenghui\Documents\GitHub\s3\2025-01" 
-
-st = time.time()
-of = r"C:\Users\Shenghui\Documents\GitHub\s3\2025-01\1" + "\\"
-process_large_csv_to_parquet(folder, of)
 
 
 print(f"Total time taken: {time.time() - st} seconds")
