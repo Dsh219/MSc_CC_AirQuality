@@ -23,6 +23,7 @@ S3_bucket_data = 'cloudcomputing-20251222'   # has to be globally unique
 S3_bucket_frontend = 'cloud-computing-frontend-20251222'  # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
+GSI_name = 'dailyindex'
 role_name = "LabRole"
 hourly_rule_name = "lambda_hourly_trigger"
 s3_web_endpoint = "s3-website-us-east-1.amazonaws.com" # for US East (N. Virginia) region, details at https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
@@ -197,7 +198,7 @@ table = dynamodbC.create_table(
     ],
     GlobalSecondaryIndexes=[
         {   
-            'IndexName': 'dailyindex',
+            'IndexName': GSI_name,
             'KeySchema': [
                 {
                     'AttributeName': 'location',
