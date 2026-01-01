@@ -3,6 +3,7 @@ print(">>>>> Starting setup <<<<<")
 import boto3
 from botocore.config import Config
 import zipfile
+import json
 stage = 1
 total_stages = 8
 #---------------------------------------------------------------------------------#
@@ -17,12 +18,15 @@ with open('../credentials.txt', 'r') as file:
 region = 'us-east-1'
 
 # Define vars for setup
-python_version = 'python3.12'
-S3_name = 'cloudcomputing-20251222'   # has to be globally unique
+python_version = 'python3.12'         # specify the Python version for Lambda functions pyarrow layer compatibility
+S3_bucket_data = 'cloudcomputing-20251222'   # has to be globally unique
+S3_bucket_frontend = 'cloud-computing-frontend-20251222'  # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
 role_name = "LabRole"
 hourly_rule_name = "lambda_hourly_trigger"
+s3_web_endpoint = "s3-website-us-east-1.amazonaws.com" # for US East (N. Virginia) region, details at https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+                                                        
 print("AWS credentials and vars loaded <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
@@ -47,17 +51,85 @@ except Exception as e:
     raise Exception(f"Setup stopped! => Failed to retrieve IAM role {role_name} : {e}")
 print(f"IAM role {role_name} with ARN <{role_arn}> found <<<<< done")
 stage += 1
-'''
+#'''
 #---------------------------------------------------------------------------------#
 ## S3 setup
-print(f">>>>> {stage}/{total_stages} Creating S3 bucket with name= {S3_name}")
+print(f">>>>> {stage}/{total_stages} Creating S3 buckets")
 s3C = session.client('s3')
+
+#******************Frontend S3 bucket creation below*******************************#
+print(f"Creating S3 bucket for frontend with name= {S3_bucket_frontend} ...")
 try:
-    s3C.create_bucket(Bucket=S3_name) 
+    s3C.create_bucket(Bucket=S3_bucket_frontend)
+    s3C.put_public_access_block(
+        Bucket=S3_bucket_frontend,
+        PublicAccessBlockConfiguration={
+            'BlockPublicAcls': False,
+            'IgnorePublicAcls': False,
+            'BlockPublicPolicy': False,
+            'RestrictPublicBuckets': False
+        } 
+    )
+    # policy is copied from S3 tutorial https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteAccessPermissionsReqd.html#bucket-policy-static-site
+    website_policy = {
+                        "Version": "2012-10-17",		 	 	 
+                        "Statement": [
+                            {
+                                "Sid": "PublicReadGetObject",
+                                "Effect": "Allow",
+                                "Principal": "*",
+                                "Action": [
+                                    "s3:GetObject"
+                                ],
+                                "Resource": [
+                                    f"arn:aws:s3:::{S3_bucket_frontend}/*"
+                                ]
+                            }
+                        ]
+                    }
+    # assign the policy to the bucket
+    s3C.put_bucket_policy(
+        Bucket=S3_bucket_frontend,
+        Policy=json.dumps(website_policy)
+    )
+    # make the bucket a website
+    s3C.put_bucket_website(
+        Bucket=S3_bucket_frontend,
+        WebsiteConfiguration={
+            'IndexDocument': {'Suffix': 'index.html'}
+        }
+    )
+    website_url = f"http://{S3_bucket_frontend}.{s3_web_endpoint}"
 except Exception as e:
-    raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_name} : {e}")
-print(f"S3 bucket with name= {S3_name} has been created successfully... <<<<< done")
+    raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_frontend} : {e}")
+print(f"S3 bucket for frontend with name= {S3_bucket_frontend} has been created successfully with public access... <<done")
+#******************Frontend S3 bucket creation above******************************#
+
+#******************Data S3 bucket creation below**********************************#
+print(f"Creating S3 bucket for data with name= {S3_bucket_data} ...")
+try:
+    s3C.create_bucket(Bucket=S3_bucket_data) 
+    s3C.put_bucket_cors(
+        Bucket=S3_bucket_data,
+        CORSConfiguration={
+            'CORSRules': [  
+                    {
+                    'AllowedHeaders': ['*'],
+                    'AllowedMethods': ['GET'],
+                    'AllowedOrigins': [website_url],
+                    'MaxAgeSeconds': 3000
+                    }
+                ]
+            }
+        )
+except Exception as e:
+    raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_data} : {e}")
+print(f"S3 bucket for data with name= {S3_bucket_data} has been created successfully with traffic restrictions only from frontend... <<done")
+#******************Data S3 bucket creation above***********************************#
+
+print(f"S3 buckets have been created successfully... <<<<< done")
 stage += 1
+
 #---------------------------------------------------------------------------------#
 # EC2 security group setup
 print(f">>>>> {stage}/{total_stages} Creating EC2 security group with name= {EC2_security_group_name}")
@@ -133,7 +205,7 @@ print(f"{dynamodb_name} has been assigned TTL...")
 print(f"Creating DynamoDB table with name= {dynamodb_name} <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
-''' 
+#''' 
 ## Lambda setup
 print(f">>>>> {stage}/{total_stages} Creating Lambda functions...")
 lambdaC = session.client('lambda')
@@ -224,7 +296,7 @@ response = lambdaC.create_function(
     Environment={
         'Variables': {
             'DYNAMODB_TABLE': dynamodb_name,
-            'S3_BUCKET_NAME': S3_name
+            'S3_BUCKET_NAME': S3_bucket_data
         }
     },
     MemorySize=1024, # 1 GB
@@ -304,4 +376,28 @@ print("EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily
 print("EventBridge rules have been set to trigger Lambda functions <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
+
+
+s3C.upload_file(
+        Filename = './frontend/index.html', 
+        Bucket = S3_bucket_frontend, 
+        Key = 'index.html', 
+        ExtraArgs={'ContentType': 'text/html'}
+        )
+
+s3C.upload_file(
+        Filename = './frontend/locations.json', 
+        Bucket = S3_bucket_frontend, 
+        Key = 'locations.json', 
+        ExtraArgs={'ContentType': 'application/json'}
+        )
+
+
+
+
+
+
+
 print(">>>>> Setup completed successfully! <<<<<")
+print("\n")
+print(f"Website can be accessed at {website_url}")

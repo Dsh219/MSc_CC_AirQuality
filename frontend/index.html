@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
+    <title>Air Quality Map</title>
     <!-- css of map-->
-     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin=""/>
-    <title>Air Quality Map</title>
     <!-- js of map-->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin="">
     </script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <style>
         html, body, #main, #map {
             height: 100%;
@@ -32,7 +35,6 @@
             height:80vh;
             width:20vw;
         }
-
         #overlay-left {
             position: absolute;
             top: 20px;
@@ -67,7 +69,6 @@
             flex-direction: column;
             align-items: center;
         }
-        
         .date-input {
             border-radius: 10px;
             outline: 2px solid #0077fe;
@@ -76,7 +77,6 @@
             padding: 10px 1rem;
             transition: 0.25s;
         }
-
         .date-input:focus {
             outline: 2px solid #0400fe;
             background-color: #fff
@@ -97,9 +97,8 @@
         }
 
     </style>
-    
-  </head>
-  <body>
+</head>
+<body>
     <div id="main">
         <div id="map"></div> <!-- insert map here-->
         <!-- overlay-left form (over the map)-->
@@ -108,7 +107,7 @@
             <!-- When the form is submitted, it sends a POST request to the specified API Gateway endpoint -->
                 <!--Four inputs : latitude(string), longitude(string), start date(string), end date(string) -->
             <!-- Replace the action URL with your actual API Gateway endpoint -->
-            <form action="https://abcd1234.execute-api.us-east-1.amazonaws.com/prod/myresource" method="post">
+            <form action="https://abcd1234.execute-api.us-east-1.amazonaws.com/prod/myresource" method="get">
                 <h1>Co-ordinate selected:</h1>
                 <label for="lat">Latitude:</label>
                 <input class="date-input" type="text" id="lat" name="lat" readonly>
@@ -139,10 +138,9 @@
     </div>
      
 
-
-  </body>
-  <script>
-    // Initialize the map
+    </body>
+    <script>
+        // Initialize the map
         var map = L.map('map',{preferCanvas: true
                                 }).setView([51.505, -0.09], 13);
         map.zoomControl.setPosition('bottomright');                            
@@ -150,9 +148,37 @@
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
+        // Load locations from JSON and add markers
+        var selectedMarker = null;
+        fetch('./locations.json')
+        .then(response => response.json()) // Convert response to JSON
+        .then(locs => { 
+            var markers = L.markerClusterGroup();
+            locs.forEach(function(loc) {
+                if (loc.lat && loc.lon) {
+                    var marker = L.marker([loc.lat, loc.lon]);
+                    marker.bindPopup(`(${loc.lat}, ${loc.lon})`);
+                    markers.addLayer(marker);
+                    markers.on('click', function(e) {
+                        var lat = e.layer.getLatLng().lat;
+                        var lon = e.layer.getLatLng().lng;
+                        document.getElementById('lat').value = lat;
+                        document.getElementById('lon').value = lon;
+                        // Add codes for fetching and displaying 24hrs data here ???
+                    });
+                }
+            });
+            map.addLayer(markers);
+        })
+        .catch(error => console.error("Error loading JSON:", error));
+        // Clear lat/lon inputs when clicking on the map (not on a marker)
+        map.on('click', function(e) {
+            document.getElementById('lat').value = '';
+            document.getElementById('lon').value = '';
+        });
     </script>
     <script>
-    // Add data check before form submission
+        // Add data check before form submission
         const form = document.querySelector('form');
         form.addEventListener('submit', function(event) {
             const latInput = document.getElementById('lat');
@@ -174,6 +200,19 @@
                 event.preventDefault();
                 return;
             }
+        });
+
+        // Add event listener for exporting 24hrs data
+        document.getElementById('export-daily').addEventListener('click', function() {
+            const lat = document.getElementById('lat').value;
+            const lon = document.getElementById('lon').value;
+            if (!lat || !lon) {
+                alert('Please select a location on the map to export 24hrs data.');
+                return;
+            }
+            // This is a placeholder for actual export functionality ??? 
+            alert(`Exporting 24hrs data for (${lat}, ${lon})`);
+          
         });
     </script>
 </html>
