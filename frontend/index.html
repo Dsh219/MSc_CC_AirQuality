@@ -2,7 +2,9 @@
 <html>
 <head>
     <title>Air Quality Map</title>
-    <!-- css of map-->
+    <!--place reserved for script insertion at line 6 : two consts are inserted: 1. REQUEST_24HRS_URL 2. REQUEST_ARCHIVE_URL -->
+<script>const REQUEST_24HRS_URL = "https://kny5q1gmz2.execute-api.us-east-1.amazonaws.com/dev/request_24hrs"; const REQUEST_ARCHIVE_URL = "https://kny5q1gmz2.execute-api.us-east-1.amazonaws.com/dev/request_archive";</script>
+     <!-- css of map-->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
         crossorigin=""/>
@@ -95,7 +97,27 @@
         .submit-button:hover, #export-daily:hover {
             background-color: #0400fe;
         }
-
+        #data-display {
+            max-height: 80vh;
+            width: 100%;
+            overflow: auto;
+            background-color: white;
+            color: black;
+            border: 1px solid #ccc;
+        }
+        #data-display table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #data-display th, #data-display td {
+            border: 1px solid #ccc;
+            
+            text-align: left;
+        }
+        #data-display th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +129,7 @@
             <!-- When the form is submitted, it sends a POST request to the specified API Gateway endpoint -->
                 <!--Four inputs : latitude(string), longitude(string), start date(string), end date(string) -->
             <!-- Replace the action URL with your actual API Gateway endpoint -->
-            <form action="https://abcd1234.execute-api.us-east-1.amazonaws.com/prod/myresource" method="get">
+            <form>
                 <h1>Co-ordinate selected:</h1>
                 <label for="lat">Latitude:</label>
                 <input class="date-input" type="text" id="lat" name="lat" readonly>
@@ -130,7 +152,19 @@
         <div id="overlay-right">
             <h2>Selected location 24hrs readings:</h2>
             <div id="data-display">
-                <!-- Data will be displayed here -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>PM2.5</th>
+                            <th>PM10</th>
+                            <th>Sensor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-body">
+                        <!-- Data rows will be inserted here -->
+                    </tbody>   
+                </table>
             </div>
             <button id="export-daily">Export 24hrs Data</button>
         </div>
@@ -140,6 +174,9 @@
 
     </body>
     <script>
+        let currentData = null;
+        let currentLat = 0;
+        let currentLon = 0;
         // Initialize the map
         var map = L.map('map',{preferCanvas: true
                                 }).setView([51.505, -0.09], 13);
@@ -159,33 +196,94 @@
                     var marker = L.marker([loc.lat, loc.lon]);
                     marker.bindPopup(`(${loc.lat}, ${loc.lon})`);
                     markers.addLayer(marker);
-                    markers.on('click', function(e) {
-                        var lat = e.layer.getLatLng().lat;
-                        var lon = e.layer.getLatLng().lng;
-                        document.getElementById('lat').value = lat;
-                        document.getElementById('lon').value = lon;
-                        // Add codes for fetching and displaying 24hrs data here ???
-                    });
                 }
             });
+            markers.on('click', function(e) {
+                var lat = e.layer.getLatLng().lat;
+                var lon = e.layer.getLatLng().lng;
+                document.getElementById('lat').value = lat;
+                document.getElementById('lon').value = lon;
+                // Add codes for fetching and displaying 24hrs data here
+                fetch(`${REQUEST_24HRS_URL}?lat=${lat}&lon=${lon}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok " + response.statusText);
+                    }
+                    return response.json();})
+                .then(data => {
+                    //console.log("Received data:", data);
+                    currentData = data;
+                    currentLat = lat;
+                    currentLon = lon;
+                    const dataBody = document.getElementById('data-body');
+                    dataBody.innerHTML = ''; 
+                    data.forEach(entry => {
+                        const row = document.createElement('tr');
+                        const timestampCell = document.createElement('td');
+                        timestampCell.textContent = entry.timestamp;
+                        const pm25Cell = document.createElement('td');
+                        pm25Cell.textContent = entry.PM2_5;
+                        const pm10Cell = document.createElement('td');
+                        pm10Cell.textContent = entry.PM10;
+                        const sensorCell = document.createElement('td');
+                        sensorCell.textContent = entry.type;
+                        row.appendChild(timestampCell);
+                        row.appendChild(pm25Cell);
+                        row.appendChild(pm10Cell);
+                        row.appendChild(sensorCell);
+                        dataBody.appendChild(row);
+                    });
+                }).catch(error => console.error("Error fetching 24hrs data:", error));
+            });
             map.addLayer(markers);
-        })
-        .catch(error => console.error("Error loading JSON:", error));
+        }).catch(error => console.error("Error loading JSON:", error));
         // Clear lat/lon inputs when clicking on the map (not on a marker)
-        map.on('click', function(e) {
-            document.getElementById('lat').value = '';
-            document.getElementById('lon').value = '';
+        //map.on('click', function(e) {
+        //    document.getElementById('lat').value = '';
+        //   document.getElementById('lon').value = '';
+        //});
+
+        document.getElementById('export-daily').addEventListener('click', function() {
+            if (!currentData || currentData.length === 0) {
+                alert('No 24hrs data available to export. Please select a location on the map.');
+                return;
+            }
+            const csvRows = [];
+            // Add headers
+            csvRows.push(['Timestamp', 'PM2.5', 'PM10', 'Sensor'].join(','));
+            // Add data rows
+            currentData.forEach(entry => {
+                const row = [
+                    entry.timestamp,
+                    entry.PM2_5,
+                    entry.PM10,
+                    entry.type
+                ];
+                csvRows.push(row.join(','));
+            });
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            const filename = `24hrs_data_lat${currentLat}_lon${currentLon}.csv`;
+            a.setAttribute('download', filename);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
     </script>
     <script>
         // Add data check before form submission
         const form = document.querySelector('form');
         form.addEventListener('submit', function(event) {
+            event.preventDefault();
             const latInput = document.getElementById('lat');
             const lonInput = document.getElementById('lon');
             if (!latInput.value || !lonInput.value) {
                 alert('Please select a location on the map.');
-                event.preventDefault();
                 return;
             }
             const startDate = document.getElementById('date0').value;
@@ -200,6 +298,7 @@
                 event.preventDefault();
                 return;
             }
+
         });
 
         // Add event listener for exporting 24hrs data

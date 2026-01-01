@@ -40,7 +40,7 @@ session = boto3.Session(
 )
 print("AWS session created <<<<< done")
 stage += 1
-
+'''
 ## S3 setup
 print(f">>>>> {stage}/{total_stages} Creating S3 buckets")
 s3C = session.client('s3')
@@ -66,7 +66,7 @@ except Exception as e:
     raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_data} : {e}")
 print(f"S3 bucket for data with name= {S3_bucket_data} has been created successfully with traffic restrictions only from frontend... <<done")
 #******************Data S3 bucket creation above***********************************#
-
+'''
 s3C.upload_file(
         Filename = './frontend/index.html', 
         Bucket = S3_bucket_frontend, 

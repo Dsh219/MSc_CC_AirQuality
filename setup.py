@@ -20,35 +20,46 @@ region = 'us-east-1'
 
 # Define vars for setup
 python_version = 'python3.12'         # specify the Python version for Lambda functions pyarrow layer compatibility
-S3_bucket_data = 'cloudcomputing-20251222'   # has to be globally unique
-S3_bucket_frontend = 'cloud-computing-frontend-20251222'  # has to be globally unique
+S3_bucket_data = 'cloudcomputing-20260101'   # has to be globally unique
+S3_bucket_frontend = 'cloud-computing-frontend-20260101'  # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
 GSI_name = 'dailyindex'
 role_name = "LabRole"
+# EventBridge rule names
 hourly_rule_name = "lambda_hourly_trigger"
-s3_web_endpoint = "s3-website-us-east-1.amazonaws.com" # for US East (N. Virginia) region, details at https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
+daily_rule_name = "lambda_daily_trigger"
+# API Gateway names
+API_name = "AirQualityAPI"
+stage_name = "dev"
+# endpoint for S3 website hosting
+s3_web_endpoint = "s3-website-us-east-1.amazonaws.com" # for US East (N. Virginia) region us-east-1, details at https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
 
 # Define Lambda functions and their zip file paths
 lambdas = {
     'lambda_hourly': {
         'zip': './zips/lambda_hourly.zip',
-        'file': 'lambda_hourly.py' 
+        'file': 'lambda_hourly.py',
+        'name': 'lambda_hourly'
     },
     'lambda_daily': {
         'zip': './zips/lambda_daily.zip',
-        'file': 'lambda_daily.py'
+        'file': 'lambda_daily.py',
+        'name': 'lambda_daily'
     },
     'pyarrow-layer': {
-        'zip': './zips/daily-layer.zip' # Lambda layer for pyarrow, has to be compressed by a Linux system
+        'zip': './zips/daily-layer.zip', # Lambda layer for pyarrow, has to be compressed by a Linux system
+        'name': 'pyarrow-layer'
     },
     'request_24hrs': {
         'zip': './zips/lambda_Rq_24hrs.zip',
-        'file': 'lambda_Rq_24hrs.py'
+        'file': 'lambda_Rq_24hrs.py',
+        'name': 'lambda_request_24hrs'
     },
     'request_archive': {
         'zip': './zips/lambda_Rq_arch.zip', 
-        'file': 'lambda_Rq_arch.py'
+        'file': 'lambda_Rq_arch.py',
+        'name': 'lambda_request_archive'
     }
 }                                                        
 print("AWS credentials and vars loaded <<<<< done")
@@ -67,16 +78,18 @@ session = boto3.Session(
 print("AWS session created <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
-#------------------------------Get IAM role ARN-----------------------------------#
+#----------------------Get IAM role ARN and account ID----------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Retrieving IAM role {role_name}...")
+print(f">>>>> {stage}/{total_stages} Retrieving IAM role {role_name} and account ID...")
+sts = session.client('sts')
+account_id = sts.get_caller_identity()['Account']
 iamC = session.client('iam')
 try:
     response = iamC.get_role(RoleName=role_name)
     role_arn = response['Role']['Arn']
 except Exception as e:
     raise Exception(f"Setup stopped! => Failed to retrieve IAM role {role_name} : {e}")
-print(f"IAM role {role_name} with ARN <{role_arn}> found <<<<< done")
+print(f"IAM role {role_name} and account ID found <<<<< done")
 stage += 1
 #'''
 #---------------------------------------------------------------------------------#
@@ -84,7 +97,6 @@ stage += 1
 #---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Creating S3 buckets")
 s3C = session.client('s3')
-
 
 #******************Frontend S3 bucket creation below*******************************#
 print(f"Creating S3 bucket for frontend with name= {S3_bucket_frontend} ...")
@@ -158,6 +170,7 @@ print(f"S3 bucket for data with name= {S3_bucket_data} has been created successf
 #*********************************************************************************#
 print(f"S3 buckets have been created successfully... <<<<< done")
 stage += 1
+
 #---------------------------------------------------------------------------------#
 #-------------------------EC2 security group setup--------------------------------#
 #---------------------------------------------------------------------------------#
@@ -260,6 +273,7 @@ dynamodbC.update_time_to_live(
 print(f"{dynamodb_name} has been assigned TTL...")
 print(f"Creating DynamoDB table with name= {dynamodb_name} <<<<< done")
 stage += 1
+
 #---------------------------------------------------------------------------------#
 #------------------------------Lambda setup---------------------------------------#
 #---------------------------------------------------------------------------------#
@@ -282,7 +296,7 @@ with open(lambdas['lambda_hourly']['zip'], 'rb') as f:
     zipped_code = f.read()
 
 response = lambdaC.create_function(
-    FunctionName='lambda_hourly',
+    FunctionName=lambdas['lambda_hourly']['name'],
     Runtime=python_version,
     Role=role_arn,
     Handler='lambda_hourly.lambda_handler',
@@ -302,12 +316,11 @@ print("Creating Daily Lambda function << done")
 #******************Hourly lambda creation above************************************#
 #**********************************************************************************#
 #******************Daily lambda creation below*************************************#
-# Create Lambda layer for pyarrow
 print("Creating Lambda layer for pyarrow...")
 with open(lambdas['pyarrow-layer']['zip'], 'rb') as f:
     zipped_code = f.read()
 response = lambdaC.publish_layer_version(
-    LayerName='pyarrow-layer',
+    LayerName=lambdas['pyarrow-layer']['name'],
     CompatibleRuntimes=[python_version],
     Content={
         'ZipFile': zipped_code
@@ -329,7 +342,7 @@ print("Creating Lambda functions ...")
 with open(lambdas['lambda_daily']['zip'], 'rb') as f:
     zipped_code = f.read()
 response = lambdaC.create_function(
-    FunctionName='lambda_daily',
+    FunctionName=lambdas['lambda_daily']['name'],
     Runtime=python_version,
     Role=role_arn,
     Layers=[layer_arn],
@@ -364,7 +377,7 @@ print("Creating Lambda functions ...")
 with open(lambdas['request_24hrs']['zip'], 'rb') as f:
     zipped_code = f.read()
 response = lambdaC.create_function(
-    FunctionName='lambda_request_24hrs',
+    FunctionName=lambdas['request_24hrs']['name'],
     Runtime=python_version,
     Role=role_arn,
     Handler='lambda_Rq_24hrs.lambda_handler',
@@ -397,7 +410,7 @@ print("Creating Lambda functions ...")
 with open(lambdas['request_archive']['zip'], 'rb') as f:
     zipped_code = f.read()
 response = lambdaC.create_function(
-    FunctionName='lambda_request_archive',
+    FunctionName=lambdas['request_archive']['name'],
     Runtime=python_version,
     Role=role_arn,
     Handler='lambda_Rq_arch.lambda_handler',
@@ -419,14 +432,12 @@ print("Creating Request archive Lambda function << done")
 
 print("Lambda functions have been created successfully... <<<<< done")
 stage += 1
+
 #---------------------------------------------------------------------------------#
 #---------------------------EventBridge setup-------------------------------------#
 #---------------------------------------------------------------------------------#
-
-## EventBridge setup
-print(f">>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger Lambda functions...")
+print(f">>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger temporal Lambda functions...")
 eventsC = session.client('events')
-
 
 #***************Hourly lambda EventBridge creation below**************************#
 # Set up EventBridge rule to trigger Lambda at HH:30
@@ -440,7 +451,7 @@ response = eventsC.put_rule(
 hourlyR_arn = response['RuleArn'] # hourly EventBridge rule ARN
 # Grant EventBridge permission to invoke the Lambda function
 lambdaC.add_permission(
-    FunctionName='lambda_hourly',
+    FunctionName=lambdas['lambda_hourly']['name'],
     StatementId='eventbridge-invoke-hourly-lambda',  # must be unique for each permission
     Action='lambda:InvokeFunction',
     Principal='events.amazonaws.com',
@@ -459,7 +470,7 @@ print("EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:45 has 
 #*********************************************************************************#
 #****************Daily lambda EventBridge creation below**************************#
 # Set up EventBridge rule to trigger Lambda at 00:00 daily 
-daily_rule_name = "lambda_daily_trigger"
+
 print(f"Setting up EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily...")
 response = eventsC.put_rule(    
     Name=daily_rule_name,
@@ -470,7 +481,7 @@ response = eventsC.put_rule(
 dailyR_arn = response['RuleArn'] # daily EventBridge rule ARN
 # Grant EventBridge permission to invoke the Lambda function
 lambdaC.add_permission(
-    FunctionName='lambda_daily',
+    FunctionName=lambdas['lambda_daily']['name'],
     StatementId='eventbridge-invoke-daily-lambda',  # must be unique for each permission
     Action='lambda:InvokeFunction',
     Principal='events.amazonaws.com',
@@ -490,11 +501,96 @@ print("EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily
 
 print("EventBridge rules have been set to trigger Lambda functions <<<<< done")
 stage += 1
+
+#---------------------------------------------------------------------------------#
+#---------------------------API Gateway setup-------------------------------------#
+#---------------------------------------------------------------------------------#
+print(f">>>>> {stage}/{total_stages} Setting up API Gateway to trigger Lambda functions for frontend...")
+apiC = session.client('apigatewayv2')
+
+response = apiC.create_api(
+    Name=API_name,
+    ProtocolType='HTTP',
+    CorsConfiguration={
+        'AllowOrigins': [website_url],
+        'AllowMethods': ['GET', 'POST', 'OPTIONS'],
+        'AllowHeaders': ['*']
+    },
+    Description='API Gateway to trigger Lambda functions for frontend requests'
+)
+api_id = response['ApiId']
+# Define routes and integrate with Lambda functions
+# URI format: arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{function_arn}/invocations 
+# this is from https://stackoverflow.com/questions/64145992/how-do-i-determine-the-path-or-action-for-my-lambda-when-setting-up-aws-api-gate/64146058#64146058
+routes = [
+    {
+        'routeKey': 'GET /request_24hrs',
+        'lambda_name': lambdas['request_24hrs']['name'],
+        'lambda_uri': f"arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{request_24hrsF_arn}/invocations",
+        'source_arn':f"arn:aws:execute-api:{region}:{account_id}:{api_id}/*/GET/request_24hrs"
+    },
+    {
+        'routeKey': 'GET /request_archive',
+        'lambda_name': lambdas['request_archive']['name'],
+        'lambda_uri': f"arn:aws:apigateway:{region}:lambda:path/2015-03-31/functions/{request_archiveF_arn}/invocations",
+        'source_arn':f"arn:aws:execute-api:{region}:{account_id}:{api_id}/*/GET/request_archive"
+    }
+]
+# Create integrations and routes, add permisions for API Gateway to invoke Lambda functions
+for route in routes:
+    response = apiC.create_integration(
+        ApiId=api_id,
+        IntegrationType='AWS_PROXY',
+        IntegrationUri=route['lambda_uri'], 
+        PayloadFormatVersion='2.0'
+    )
+    integration_id = response['IntegrationId']
+    apiC.create_route(
+        ApiId=api_id,
+        RouteKey=route['routeKey'],
+        Target=f'integrations/{integration_id}',
+        AuthorizationType='NONE'
+    )
+    lambdaC.add_permission(
+        FunctionName=route['lambda_name'],
+        StatementId=f"apigateway-invoke-{route['lambda_name']}",  # must be unique for each permission
+        Action='lambda:InvokeFunction',
+        Principal='apigateway.amazonaws.com',
+        SourceArn=route['source_arn']
+    )
+# Deploy the API
+response = apiC.create_deployment(
+    ApiId=api_id,
+    Description='Initial deployment for AirQualityAPI'
+)
+api_deployment_id = response['DeploymentId']
+response = apiC.create_stage(
+    ApiId=api_id,
+    StageName=stage_name,
+    DeploymentId=api_deployment_id
+)
+
+api_endpoint = f"https://{api_id}.execute-api.{region}.amazonaws.com/{stage_name}"
+valid_requests = {
+    'request_24hrs': f"{api_endpoint}/request_24hrs",
+    'request_archive': f"{api_endpoint}/request_archive"
+}
+# Update frontend index.html with the API endpoints
+with open('./frontend/index.html', 'r') as f:
+    lines = f.readlines()
+url_24hrs = json.dumps(valid_requests['request_24hrs'])
+url_archive = json.dumps(valid_requests['request_archive'])
+# Insert the URLs into index.html at line 6
+lines[5] = f"<script>const REQUEST_24HRS_URL = {url_24hrs}; const REQUEST_ARCHIVE_URL = {url_archive};</script>\n"
+with open('./frontend/index.html', 'w') as f:
+    f.writelines(lines)
+
+print("API Gateway has been set up to trigger Lambda functions for frontend <<<<< done")
+stage += 1
 #---------------------------------------------------------------------------------#
 #-------------------------Upload frontend files to S3-----------------------------#
 #---------------------------------------------------------------------------------#
-
-
+print(f">>>>> {stage}/{total_stages} Uploading frontend files to S3 bucket {S3_bucket_frontend}...")
 s3C.upload_file(
         Filename = './frontend/index.html', 
         Bucket = S3_bucket_frontend, 

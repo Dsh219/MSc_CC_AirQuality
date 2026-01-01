@@ -96,18 +96,20 @@ def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> No
                     shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
     print(f"Unzipped files in {folder_path}")
 
-start = date(2023, 7, 1)
-end = date(2023, 12, 20)
+start = date(2018, 1, 1)
+end = date(2018, 6, 20)
 current = start
 of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
-folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
+#folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
+folder = r"E:\zips"
+#folder = r"D:\s3_to_be_done"
 
 FromFolder = lambda mF, mo, yr : mF +  f"\{yr}-{mo:02d}" + "\\"
 
 while current <= end:
     current = date(current.year, current.month, 1)
-    #unzip_files_in_folder(FromFolder(folder, current.month, current.year))
-    process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
+    unzip_files_in_folder(FromFolder(folder, current.month, current.year))
+    #process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
     current += timedelta(days=31)
 
 
