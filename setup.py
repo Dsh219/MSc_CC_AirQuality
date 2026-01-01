@@ -7,7 +7,8 @@ import json
 stage = 1
 total_stages = 8
 #---------------------------------------------------------------------------------#
-## Load credentials and define vars
+#-----------------------Load credentials and define vars--------------------------#
+#---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Loading AWS credentials and vars...")
 #with open('./credentials/credentials.txt', 'r') as file:
 with open('../credentials.txt', 'r') as file:
@@ -27,11 +28,35 @@ GSI_name = 'dailyindex'
 role_name = "LabRole"
 hourly_rule_name = "lambda_hourly_trigger"
 s3_web_endpoint = "s3-website-us-east-1.amazonaws.com" # for US East (N. Virginia) region, details at https://docs.aws.amazon.com/general/latest/gr/s3.html#s3_website_region_endpoints
-                                                        
+
+# Define Lambda functions and their zip file paths
+lambdas = {
+    'lambda_hourly': {
+        'zip': './zips/lambda_hourly.zip',
+        'file': 'lambda_hourly.py' 
+    },
+    'lambda_daily': {
+        'zip': './zips/lambda_daily.zip',
+        'file': 'lambda_daily.py'
+    },
+    'pyarrow-layer': {
+        'zip': './zips/daily-layer.zip' # Lambda layer for pyarrow, has to be compressed by a Linux system
+    },
+    'request_24hrs': {
+        'zip': './zips/lambda_Rq_24hrs.zip',
+        'file': 'lambda_Rq_24hrs.py'
+    },
+    'request_archive': {
+        'zip': './zips/lambda_Rq_arch.zip', 
+        'file': 'lambda_Rq_arch.py'
+    }
+}                                                        
 print("AWS credentials and vars loaded <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
-## Create a session
+#-------------------------------Create a session----------------------------------#
+#---------------------------------------------------------------------------------#
+
 print(f">>>>> {stage}/{total_stages} Creating AWS session...")
 session = boto3.Session(
     aws_access_key_id=access_key,
@@ -42,7 +67,8 @@ session = boto3.Session(
 print("AWS session created <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
-## Get IAM role ARN
+#------------------------------Get IAM role ARN-----------------------------------#
+#---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Retrieving IAM role {role_name}...")
 iamC = session.client('iam')
 try:
@@ -54,9 +80,11 @@ print(f"IAM role {role_name} with ARN <{role_arn}> found <<<<< done")
 stage += 1
 #'''
 #---------------------------------------------------------------------------------#
-## S3 setup
+#------------------------------S3 setup-------------------------------------------#
+#---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Creating S3 buckets")
 s3C = session.client('s3')
+
 
 #******************Frontend S3 bucket creation below*******************************#
 print(f"Creating S3 bucket for frontend with name= {S3_bucket_frontend} ...")
@@ -105,7 +133,7 @@ except Exception as e:
     raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_frontend} : {e}")
 print(f"S3 bucket for frontend with name= {S3_bucket_frontend} has been created successfully with public access... <<done")
 #******************Frontend S3 bucket creation above******************************#
-
+#*********************************************************************************#
 #******************Data S3 bucket creation below**********************************#
 print(f"Creating S3 bucket for data with name= {S3_bucket_data} ...")
 try:
@@ -126,13 +154,13 @@ try:
 except Exception as e:
     raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_data} : {e}")
 print(f"S3 bucket for data with name= {S3_bucket_data} has been created successfully with traffic restrictions only from frontend... <<done")
-#******************Data S3 bucket creation above***********************************#
-
+#******************Data S3 bucket creation above**********************************#
+#*********************************************************************************#
 print(f"S3 buckets have been created successfully... <<<<< done")
 stage += 1
-
 #---------------------------------------------------------------------------------#
-# EC2 security group setup
+#-------------------------EC2 security group setup--------------------------------#
+#---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Creating EC2 security group with name= {EC2_security_group_name}")
 config = Config(
         retries = {
@@ -162,7 +190,8 @@ ec2C.authorize_security_group_ingress(
 print(f"Security group - {EC2_security_group_name} have been set... <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
-## DynamoDB setup
+#---------------------------DynamoDB setup----------------------------------------#
+#---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Creating DynamoDB table with name= {dynamodb_name}")
 dynamodbC = session.client('dynamodb')
 table = dynamodbC.create_table(
@@ -232,24 +261,12 @@ print(f"{dynamodb_name} has been assigned TTL...")
 print(f"Creating DynamoDB table with name= {dynamodb_name} <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
+#------------------------------Lambda setup---------------------------------------#
+#---------------------------------------------------------------------------------#
 #''' 
-## Lambda setup
 print(f">>>>> {stage}/{total_stages} Creating Lambda functions...")
 lambdaC = session.client('lambda')
-# Define Lambda functions and their zip file paths
-lambdas = {
-    'lambda_hourly': {
-        'zip': './zips/lambda_hourly.zip',
-        'file': 'lambda_hourly.py' 
-    },
-    'lambda_daily': {
-        'zip': './zips/lambda_daily.zip',
-        'file': 'lambda_daily.py'
-    },
-    'pyarrow-layer': {
-        'zip': './zips/daily-layer.zip' # Lambda layer for pyarrow, has to be compressed by a Linux system
-    }
-}
+
 #******************Hourly lambda creation below************************************#
 # Create zip files for Lambda functions
 print("Creating zip files for Hourly Lambda function to ./zips ...")
@@ -283,7 +300,7 @@ response = lambdaC.create_function(
 hourlyF_arn = response['FunctionArn'] # hourly Lambda function ARN
 print("Creating Daily Lambda function << done")
 #******************Hourly lambda creation above************************************#
-
+#**********************************************************************************#
 #******************Daily lambda creation below*************************************#
 # Create Lambda layer for pyarrow
 print("Creating Lambda layer for pyarrow...")
@@ -333,13 +350,83 @@ response = lambdaC.create_function(
 dailyF_arn = response['FunctionArn'] # daily Lambda function ARN
 print("Creating Daily Lambda function << done")
 #******************Daily lambda creation above************************************#
+#*********************************************************************************#
+#******************Request 24hrs lambda creation below****************************#
+# Create zip files for Lambda functions
+print("Creating zip files for Request 24hrs Lambda function to ./zips ...") 
+#-Request 24hrs function
+with zipfile.ZipFile(lambdas['request_24hrs']['zip'], 'w', zipfile.ZIP_DEFLATED) as z:
+    z.write(lambdas['request_24hrs']['file'], arcname=lambdas['request_24hrs']['file'])
+print("Zip files for Lambda functions have been created << done")
+# Create Lambda functions
+print("Creating Lambda functions ...")
+    #-Request 24hrs function
+with open(lambdas['request_24hrs']['zip'], 'rb') as f:
+    zipped_code = f.read()
+response = lambdaC.create_function(
+    FunctionName='lambda_request_24hrs',
+    Runtime=python_version,
+    Role=role_arn,
+    Handler='lambda_Rq_24hrs.lambda_handler',
+    Code={
+        'ZipFile': zipped_code
+    },
+    Environment={
+        'Variables': {
+            'DYNAMODB_TABLE': dynamodb_name,
+            'GSI_NAME': GSI_name
+        }
+    },
+    Timeout=60*2, # 2 minutes > 
+    Description='Fetches 24 hourly air quality data from DynamoDB and return to user'
+)
+request_24hrsF_arn = response['FunctionArn'] # Request 24hrs Lambda function ARN
+print("Creating Request 24hrs Lambda function << done")
+#******************Request 24hrs lambda creation above****************************#
+#*********************************************************************************#
+#*****************Request archive lambda creation below***************************#
+# Create zip files for Lambda functions
+print("Creating zip files for Request archive Lambda function to ./zips ...") 
+#-Request archive function
+with zipfile.ZipFile(lambdas['request_archive']['zip'], 'w', zipfile.ZIP_DEFLATED) as z:
+    z.write(lambdas['request_archive']['file'], arcname=lambdas['request_archive']['file'])
+print("Zip files for Lambda functions have been created << done")
+# Create Lambda functions
+print("Creating Lambda functions ...")
+    #-Request 24hrs function
+with open(lambdas['request_archive']['zip'], 'rb') as f:
+    zipped_code = f.read()
+response = lambdaC.create_function(
+    FunctionName='lambda_request_archive',
+    Runtime=python_version,
+    Role=role_arn,
+    Handler='lambda_Rq_arch.lambda_handler',
+    Code={
+        'ZipFile': zipped_code
+    },
+    Environment={
+        'Variables': {
+            'S3_BUCKET_DATA': S3_bucket_data
+        }
+    },
+    Timeout=60*2, # 2 minutes > 
+    Description='Fetches archive air quality data from S3 and return to user'
+)
+request_archiveF_arn = response['FunctionArn'] # Request archive Lambda function ARN
+print("Creating Request archive Lambda function << done")
+#*****************Request archive lambda creation above***************************#
+#*********************************************************************************#
 
 print("Lambda functions have been created successfully... <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#
+#---------------------------EventBridge setup-------------------------------------#
+#---------------------------------------------------------------------------------#
+
 ## EventBridge setup
 print(f">>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger Lambda functions...")
 eventsC = session.client('events')
+
 
 #***************Hourly lambda EventBridge creation below**************************#
 # Set up EventBridge rule to trigger Lambda at HH:30
@@ -369,7 +456,7 @@ eventsC.put_targets(
 )
 print("EventBridge rule to trigger Lambda function 'lambda_hourly' at HH:45 has been set... << done")
 #***************Hourly lambda EventBridge creation above**************************#
-
+#*********************************************************************************#
 #****************Daily lambda EventBridge creation below**************************#
 # Set up EventBridge rule to trigger Lambda at 00:00 daily 
 daily_rule_name = "lambda_daily_trigger"
@@ -399,9 +486,12 @@ eventsC.put_targets(
 )
 print("EventBridge rule to trigger Lambda function 'lambda_daily' at 00:00 daily has been set... << done")
 #****************Daily lambda EventBridge creation above**************************#
+#*********************************************************************************#
 
 print("EventBridge rules have been set to trigger Lambda functions <<<<< done")
 stage += 1
+#---------------------------------------------------------------------------------#
+#-------------------------Upload frontend files to S3-----------------------------#
 #---------------------------------------------------------------------------------#
 
 
