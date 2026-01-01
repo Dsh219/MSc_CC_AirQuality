@@ -62,6 +62,8 @@ def lambda_handler(event, context):
 
                 dic["geo"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}_{Each['id']}" # unique id with filter on P1 and P2 introduced above
                 dic["timestamp"] = f"{Each['timestamp'].replace(' ' ,'T')}" + "Z"
+                dic["location"] = f"{Each['location']['latitude']}_{Each['location']['longitude']}"
+                dic["id"] = f"{Each['timestamp'].replace(' ' ,'T')}Z_{num}"
                 dic["type"] = Type
                 dic["altitude"] = Each['location'].get('altitude', "N/A")
                 dic["expires_at"] = int(time.time() + 3600*24)  # 24 hours TTL

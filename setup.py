@@ -184,8 +184,34 @@ table = dynamodbC.create_table(
         {
             'AttributeName': 'timestamp',
             'AttributeType': 'S'
+        }, # GSI attributes below
+        {
+            'AttributeName': 'location',
+            'AttributeType': 'S'
+        },
+        {
+            'AttributeName': 'id',
+            'AttributeType': 'S'
         }
 
+    ],
+    GlobalSecondaryIndexes=[
+        {   
+            'IndexName': 'dailyindex',
+            'KeySchema': [
+                {
+                    'AttributeName': 'location',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'id',
+                    'KeyType': 'RANGE'
+                }
+            ],
+            'Projection': {
+                'ProjectionType': 'ALL'
+            }
+        }
     ],
     BillingMode='PAY_PER_REQUEST'
 )
