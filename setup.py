@@ -169,6 +169,24 @@ try:
                 ]
             }
         )
+    # Add expiration rule on ouput/ for client fetched data
+    s3C.put_bucket_lifecycle_configuration(
+        Bucket=S3_bucket_data,
+        LifecycleConfiguration={
+            'Rules': [
+                {
+                    'ID': 'ExpireOldFetchData',
+                    'Status': 'Enabled',
+                    'Expiration': {
+                        'Days': 1
+                    },
+                    'Filter': {
+                        'Prefix': 'output/'
+                    }
+                }
+            ]
+        }
+    )
 except Exception as e:
     raise Exception(f"Setup stopped! => Failed to create S3 bucket with name= {S3_bucket_data} : {e}")
 print(f"S3 bucket for data with name= {S3_bucket_data} has been created successfully with traffic restrictions only from frontend... <<done")
@@ -669,12 +687,14 @@ response = athenaC.start_query_execution(
     QueryExecutionContext={"Database": "default"},
     ResultConfiguration={"OutputLocation": athena_output}
 )
+w = ['|','/','-','\\']
 while True:
     query_status = athenaC.get_query_execution(QueryExecutionId=response['QueryExecutionId'])
     query_state = query_status['QueryExecution']['Status']['State']
     if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
         break
-    time.sleep(2)
+    print(f"\rWaiting for query to complete... {w[int(time.time()) % len(w)]}", end='', flush=True)
+    time.sleep(1)
 if query_state != 'SUCCEEDED':
     raise Exception(f"Setup stopped! => Failed to link Athena table to the S3 bucket {S3_bucket_data} : Query {query_state}")
 

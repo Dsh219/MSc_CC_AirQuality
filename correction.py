@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 local_data_folder = r"C:\Users\Shenghui\Documents\GitHub\parquet"
-local_data_folder =r"C:\Users\Shenghui\Documents\GitHub\MSc_CC_AirQuality\data\s3"
+#local_data_folder =r"C:\Users\Shenghui\Documents\GitHub\MSc_CC_AirQuality\data\s3"
 
 '''
 error=[]

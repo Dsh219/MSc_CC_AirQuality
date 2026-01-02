@@ -118,10 +118,53 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
+
+        #loading-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+            z-index: 9999; /* High z-index to sit on top of map */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner-box {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0077fe; /* Blue to match your theme */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div id="main">
+        <div id="loading-overlay">
+            <div class="spinner-box">
+                <div class="spinner"></div>
+                <h3>Processing Archive...</h3>
+                <p>Please wait, this may take a moment.</p>
+            </div>
+        </div>
         <div id="map"></div> <!-- insert map here-->
         <!-- overlay-left form (over the map)-->
         <div id="overlay-left"> 
@@ -278,6 +321,7 @@
     <script>
         // Add data check before form submission
         const form = document.querySelector('form');
+        const loadingOverlay = document.getElementById('loading-overlay');
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             const latitude = document.getElementById('lat').value;
@@ -298,6 +342,7 @@
                 event.preventDefault();
                 return;
             }
+            loadingOverlay.style.display = 'flex';
             fetch(`${REQUEST_ARCHIVE_URL}?lat=${latitude}&lon=${longitude}&date0=${startDate}&date1=${endDate}`)
             .then(response => {
                 if (response.status === 204) {
@@ -329,6 +374,9 @@
             })
             .catch(error => {
                 alert('Failed to download archive data: ' + error.message);
+            })
+            .finally(() => {
+                loadingOverlay.style.display = 'none';
             });
         });
     </script>

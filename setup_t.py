@@ -141,7 +141,7 @@ if query_state != 'SUCCEEDED':
 print(f"Athena table has been linked to the S3 bucket {S3_bucket_data} <<<<< done")
 # url => http://cloud-computing-frontend-20260101.s3-website-us-east-1.amazonaws.com
 '''
-
+'''
 s3C = session.client('s3')
 for folder in Path(local_data_folder).iterdir():
     if folder.is_dir():
@@ -157,3 +157,19 @@ for folder in Path(local_data_folder).iterdir():
             )
         print(f"\r{Fname}", end='')
 print("\nAll data parquet files have been uploaded to S3 data bucket.")
+'''
+athenaC = session.client('athena')
+response = athenaC.start_query_execution(
+    QueryString=f"MSCK REPAIR TABLE {athena_name}",
+    QueryExecutionContext={"Database": "default"},
+    ResultConfiguration={"OutputLocation": athena_output}
+)
+while True:
+    query_status = athenaC.get_query_execution(QueryExecutionId=response['QueryExecutionId'])
+    query_state = query_status['QueryExecution']['Status']['State']
+    if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+        break
+    time.sleep(2)
+if query_state != 'SUCCEEDED':
+    raise Exception(f"Setup stopped! => Failed to link Athena table to the S3 bucket {S3_bucket_data} : Query {query_state}")
+print(f"Athena table has been linked to the S3 bucket {S3_bucket_data} <<<<< done")
