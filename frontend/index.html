@@ -300,18 +300,5 @@
             }
 
         });
-
-        // Add event listener for exporting 24hrs data
-        document.getElementById('export-daily').addEventListener('click', function() {
-            const lat = document.getElementById('lat').value;
-            const lon = document.getElementById('lon').value;
-            if (!lat || !lon) {
-                alert('Please select a location on the map to export 24hrs data.');
-                return;
-            }
-            // This is a placeholder for actual export functionality ??? 
-            alert(`Exporting 24hrs data for (${lat}, ${lon})`);
-          
-        });
     </script>
 </html>

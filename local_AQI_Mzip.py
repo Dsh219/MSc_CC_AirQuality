@@ -51,8 +51,13 @@ def process_large_csv_to_parquet(input_folder:str, output_folder:str, chunk_size
     
     # Group again to sum up the partial sums and counts
     final_group = full_df.groupby(['date', 'lat', 'lon']).sum().reset_index()
-    final_group['date'] = pd.to_datetime(final_group['date']).dt.date # ensure date format for partitioning
-
+    
+    df = pd.to_datetime(final_group['date'],errors="coerce", format="%Y-%m-%d") # covert normal yyyy-mm-dd to datetime
+    mask = df.isna() # get the mask for invalid dates (unix timestamps)
+    if mask.any():
+        numeric_dates = pd.to_numeric(final_group.loc[mask,'date'],errors="coerce")
+        df.loc[mask] = pd.to_datetime(numeric_dates,unit='s',errors="coerce")
+    final_group['date'] = df.dt.date
     # Calculate the raw means first (vectorized division)
     p1_mean = final_group['P1_sum'] / final_group['P1_count']
     p2_mean = final_group['P2_sum'] / final_group['P2_count']
@@ -96,8 +101,8 @@ def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> No
                     shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
     print(f"Unzipped files in {folder_path}")
 
-start = date(2018, 1, 1)
-end = date(2018, 6, 20)
+start = date(2020, 7, 1)
+end = date(2020, 12, 20)
 current = start
 of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
 #folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
@@ -108,6 +113,7 @@ FromFolder = lambda mF, mo, yr : mF +  f"\{yr}-{mo:02d}" + "\\"
 
 while current <= end:
     current = date(current.year, current.month, 1)
+    
     unzip_files_in_folder(FromFolder(folder, current.month, current.year))
     #process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
     current += timedelta(days=31)

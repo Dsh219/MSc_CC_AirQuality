@@ -19,6 +19,9 @@ def lambda_handler(event, context):
     if 'queryStringParameters' not in event:
         return {
             'statusCode': 400,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+            },
             'body': json.dumps('Missing query parameters')
         }
     lat = event['queryStringParameters'].get('lat')

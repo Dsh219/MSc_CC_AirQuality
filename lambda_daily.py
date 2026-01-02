@@ -26,6 +26,10 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["DYNAMODB_TABLE"]) # DynamoDB table name from setup.py <======        
 s3 = boto3.client('s3')
 s3_bucketname = os.environ["S3_BUCKET_NAME"]  # S3 bucket name from setup.py <======
+athena = boto3.client('athena')
+athena_output = os.environ["ATHENA_OUTPUT"]  # Athena output S3 bucket from
+athena_root = os.environ["ATHENA_ROOT"]  # Athena root S3 bucket from setup.py
+athena_name = os.environ["ATHENA_NAME"]  # Athena table name from setup.py
 
 def lambda_handler(event, context):
 
@@ -54,33 +58,42 @@ def lambda_handler(event, context):
         aqi_pm10 = aqi(sum(measures['PM10']) / len(measures['PM10']), PM10_RANGES) if measures['PM10'] else 0
         aqi_pm2_5 = aqi(sum(measures['PM2_5']) / len(measures['PM2_5']), PM25_RANGES) if measures['PM2_5'] else 0
         AQI = max(aqi_pm10, aqi_pm2_5)
+        #entry = {
+        #    'date': date,
+        #    'lat': lat,
+        #    'lon': lon,
+        #    'altitude': altitude if altitude is not None else "N/A",
+        #    'AQI':AQI
+        #}
         entry = {
-            'date': date,
-            'lat': float(lat),
-            'lon': float(lon),
-            'altitude': float(altitude) if altitude is not None else float('nan'),
+            'lat': lat,
+            'lon': lon,
             'AQI':AQI
         }
         all.append(entry)
     num = len(all)
     ## Write to S3 as Parquet
     # Define schema
+    #schema = pa.schema([
+    #    ('date', pa.string()),
+    #    ('lat', pa.string()),
+    #    ('lon', pa.string()),
+    #    ('altitude', pa.string()),
+    #    ('AQI', pa.int32())
+    #])
     schema = pa.schema([
-        ('date', pa.string()),
-        ('lat', pa.float64()),
-        ('lon', pa.float64()),
-        ('altitude', pa.float64()),
+        ('lat', pa.string()),
+        ('lon', pa.string()),
         ('AQI', pa.int32())
     ])
     pa_table = pa.Table.from_pylist(all,schema=schema)
     parquet_buffer = io.BytesIO()
     pq.write_table(pa_table, parquet_buffer)
     yr,mo,dy = date.split('-')
-    
     for times in range(5):  # Retry up to 5 times
         try:    
             s3.put_object(Bucket=s3_bucketname, 
-                      Key=f'year={yr}/month={mo}/day={dy}/data.parquet', 
+                      Key=f'data/year={yr}/month={mo}/day={dy}/data.parquet', 
                       Body=parquet_buffer.getvalue())
             break
         except Exception as e:
@@ -90,6 +103,17 @@ def lambda_handler(event, context):
                     "body": json.dumps(f"Failed to write Parquet to S3: {e}")
                 }
             time.sleep(1.5 ** times) 
+    # Update athena table
+    query = f"""
+    AlTER TABLE {athena_name} ADD IF NOT EXISTS
+    PARTITION (year={int(yr)}, month={int(mo)}, day={int(dy)})
+    LOCATION '{athena_root}year={yr}/month={mo}/day={dy}/'
+    """
+    response=athena.start_query_execution(
+        QueryString=query,
+        QueryExecutionContext={"Database": "default"},
+        ResultConfiguration={"OutputLocation": athena_output}
+    )
     return {
         "statusCode": 200,
         "body": json.dumps(f"{num} items written to S3 as Parquet")

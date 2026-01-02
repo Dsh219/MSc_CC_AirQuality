@@ -5,7 +5,7 @@ from botocore.config import Config
 import zipfile
 import json
 stage = 1
-total_stages = 8
+total_stages = 10
 #---------------------------------------------------------------------------------#
 #-----------------------Load credentials and define vars--------------------------#
 #---------------------------------------------------------------------------------#
@@ -21,6 +21,9 @@ region = 'us-east-1'
 # Define vars for setup
 python_version = 'python3.12'         # specify the Python version for Lambda functions pyarrow layer compatibility
 S3_bucket_data = 'cloudcomputing-20260101'   # has to be globally unique
+athena_output = f's3://{S3_bucket_data}/output/'  # S3 bucket for Athena query results
+athena_root = f's3://{S3_bucket_data}/data/'    # S3 bucket for Athena root
+athena_name = 'daily_aqi'  # Athena table name
 S3_bucket_frontend = 'cloud-computing-frontend-20260101'  # has to be globally unique
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
@@ -68,7 +71,7 @@ stage += 1
 #-------------------------------Create a session----------------------------------#
 #---------------------------------------------------------------------------------#
 
-print(f">>>>> {stage}/{total_stages} Creating AWS session...")
+print(f"\n>>>>> {stage}/{total_stages} Creating AWS session...")
 session = boto3.Session(
     aws_access_key_id=access_key,
     aws_secret_access_key=secret_key,
@@ -80,7 +83,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #----------------------Get IAM role ARN and account ID----------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Retrieving IAM role {role_name} and account ID...")
+print(f"\n>>>>> {stage}/{total_stages} Retrieving IAM role {role_name} and account ID...")
 sts = session.client('sts')
 account_id = sts.get_caller_identity()['Account']
 iamC = session.client('iam')
@@ -95,7 +98,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #------------------------------S3 setup-------------------------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Creating S3 buckets")
+print(f"\n>>>>> {stage}/{total_stages} Creating S3 buckets")
 s3C = session.client('s3')
 
 #******************Frontend S3 bucket creation below*******************************#
@@ -205,7 +208,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #---------------------------DynamoDB setup----------------------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Creating DynamoDB table with name= {dynamodb_name}")
+print(f"\n>>>>>> {stage}/{total_stages} Creating DynamoDB table with name= {dynamodb_name}")
 dynamodbC = session.client('dynamodb')
 table = dynamodbC.create_table(
     TableName=dynamodb_name,
@@ -278,7 +281,7 @@ stage += 1
 #------------------------------Lambda setup---------------------------------------#
 #---------------------------------------------------------------------------------#
 #''' 
-print(f">>>>> {stage}/{total_stages} Creating Lambda functions...")
+print(f"\n>>>>>> {stage}/{total_stages} Creating Lambda functions...")
 lambdaC = session.client('lambda')
 
 #******************Hourly lambda creation below************************************#
@@ -353,7 +356,10 @@ response = lambdaC.create_function(
     Environment={
         'Variables': {
             'DYNAMODB_TABLE': dynamodb_name,
-            'S3_BUCKET_NAME': S3_bucket_data
+            'S3_BUCKET_NAME': S3_bucket_data,
+            'ATHENA_OUTPUT': athena_output,
+            'ATHENA_ROOT': athena_root,
+            'ATHENA_NAME': athena_name
         }
     },
     MemorySize=1024, # 1 GB
@@ -419,7 +425,9 @@ response = lambdaC.create_function(
     },
     Environment={
         'Variables': {
-            'S3_BUCKET_DATA': S3_bucket_data
+            'S3_BUCKET_DATA': S3_bucket_data,
+            'athena_name': athena_name,
+            'ATHENA_OUTPUT': athena_output
         }
     },
     Timeout=60*2, # 2 minutes > 
@@ -436,7 +444,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #---------------------------EventBridge setup-------------------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger temporal Lambda functions...")
+print(f"\n>>>>>> {stage}/{total_stages} Setting up EventBridge rules to trigger temporal Lambda functions...")
 eventsC = session.client('events')
 
 #***************Hourly lambda EventBridge creation below**************************#
@@ -505,7 +513,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #---------------------------API Gateway setup-------------------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Setting up API Gateway to trigger Lambda functions for frontend...")
+print(f"\n>>>>>> {stage}/{total_stages} Setting up API Gateway to trigger Lambda functions for frontend...")
 apiC = session.client('apigatewayv2')
 
 response = apiC.create_api(
@@ -590,7 +598,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #-------------------------Upload frontend files to S3-----------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Uploading frontend files to S3 bucket {S3_bucket_frontend}...")
+print(f"\n>>>>>> {stage}/{total_stages} Uploading frontend files to S3 bucket {S3_bucket_frontend}...")
 s3C.upload_file(
         Filename = './frontend/index.html', 
         Bucket = S3_bucket_frontend, 
@@ -604,12 +612,36 @@ s3C.upload_file(
         Key = 'locations.json', 
         ExtraArgs={'ContentType': 'application/json'}
         )
+print(f"Frontend files have been uploaded to S3 bucket {S3_bucket_frontend} <<<<< done")
+stage += 1
 
-
-
-
-
-
+#---------------------------------------------------------------------------------#
+#-------------------------Link Athena table to the S3-----------------------------#
+#---------------------------------------------------------------------------------#
+print(f"\n>>>>>> {stage}/{total_stages} Linking Athena table to the S3 bucket {S3_bucket_data}...")
+athenaC = session.client('athena')
+query = f"""
+CREATE EXTERNAL TABLE IF NOT EXISTS {athena_name} (
+    "date" STRING,
+    lat: DOUBLE,
+    lon: DOUBLE,
+    alt: DOUBLE,
+    AQI: INT
+)
+PARTITIONED BY (year INT, month INT, day INT)
+STORED AS PARQUET
+LOCATION '{athena_root}'
+"""
+response = athenaC.start_query_execution(   
+    QueryString=query,
+    QueryExecutionContext={"Database": "default"},
+    ResultConfiguration={"OutputLocation": athena_output}
+)
+print(f"Athena table has been linked to the S3 bucket {S3_bucket_data} <<<<< done")
+stage += 1
+#---------------------------------------------------------------------------------#
+#------------------------------Setup completed------------------------------------#
+#---------------------------------------------------------------------------------#
 
 print(">>>>> Setup completed successfully! <<<<<")
 print("\n")
