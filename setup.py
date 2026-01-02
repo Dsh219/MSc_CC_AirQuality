@@ -622,10 +622,8 @@ print(f"\n>>>>>> {stage}/{total_stages} Linking Athena table to the S3 bucket {S
 athenaC = session.client('athena')
 query = f"""
 CREATE EXTERNAL TABLE IF NOT EXISTS {athena_name} (
-    "date" STRING,
-    lat: DOUBLE,
-    lon: DOUBLE,
-    alt: DOUBLE,
+    lat: STRING,
+    lon: STRING,
     AQI: INT
 )
 PARTITIONED BY (year INT, month INT, day INT)
