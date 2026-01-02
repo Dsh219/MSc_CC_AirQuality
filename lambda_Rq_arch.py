@@ -1,6 +1,7 @@
 import boto3 
 import os
 import json
+import time 
 
 s3 = boto3.resource('s3')
 athena = boto3.client('athena')
@@ -35,6 +36,36 @@ def lambda_handler(event, context):
             AND lat = '{lat}'
             AND lon = '{lon}'
     """
+    response = athena.start_query_execution(
+        QueryString=query,
+        QueryExecutionContext={'Database': 'default'},
+        ResultConfiguration={'OutputLocation': athena_output}
+    )
+    query_id = response['QueryExecutionId']
+    while True:
+        query_status = athena.get_query_execution(QueryExecutionId=query_id)
+        query_state = query_status['QueryExecution']['Status']['State']
+        if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+            break
+        time.sleep(1)
+    if query_state == 'SUCCEEDED':
+        result_location = query_status['QueryExecution']['ResultConfiguration']['OutputLocation']
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+            },
+            'body': json.dumps({'result_location': result_location})
+        }
+    else:
+        error_message = query_status['QueryExecution']['Status'].get('StateChangeReason', 'Unknown error')
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+            },
+            'body': json.dumps(f'Data not retrieved with state: {query_state} - {error_message}')
+        }
 
 
 

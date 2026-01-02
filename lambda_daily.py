@@ -105,7 +105,7 @@ def lambda_handler(event, context):
             time.sleep(1.5 ** times) 
     # Update athena table
     query = f"""
-    AlTER TABLE {athena_name} ADD IF NOT EXISTS
+    ALTER TABLE {athena_name} ADD IF NOT EXISTS
     PARTITION (year={int(yr)}, month={int(mo)}, day={int(dy)})
     LOCATION '{athena_root}year={yr}/month={mo}/day={dy}/'
     """

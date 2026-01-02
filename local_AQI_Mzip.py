@@ -114,8 +114,8 @@ FromFolder = lambda mF, mo, yr : mF +  f"\{yr}-{mo:02d}" + "\\"
 while current <= end:
     current = date(current.year, current.month, 1)
     
-    unzip_files_in_folder(FromFolder(folder, current.month, current.year))
-    #process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
+    #unzip_files_in_folder(FromFolder(folder, current.month, current.year))
+    process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
     current += timedelta(days=31)
 
 

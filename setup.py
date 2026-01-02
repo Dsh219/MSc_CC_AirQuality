@@ -430,7 +430,7 @@ response = lambdaC.create_function(
             'ATHENA_OUTPUT': athena_output
         }
     },
-    Timeout=60*2, # 2 minutes > 
+    Timeout=60*15, # 15 minutes 
     Description='Fetches archive air quality data from S3 and return to user'
 )
 request_archiveF_arn = response['FunctionArn'] # Request archive Lambda function ARN
