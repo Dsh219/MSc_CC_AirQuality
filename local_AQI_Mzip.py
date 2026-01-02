@@ -6,6 +6,17 @@ from datetime import date, timedelta
 import zipfile
 import shutil
 st = time.time()
+
+
+start = date(2025, 12, 1)
+end = date(2025, 12, 20)
+current = start
+of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
+#folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
+folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
+#folder = r"D:\s3_to_be_done"
+
+
 # P1: PM10, P2: PM2.5
 PM10_bins = [0, 17, 34, 51, 59, 67, 76, 84, 92, 101, float('inf')]
 PM10_labels = [1,2,3,4,5,6,7,8,9,10]
@@ -69,21 +80,25 @@ def process_large_csv_to_parquet(input_folder:str, output_folder:str, chunk_size
 
     # Set AQI --- Max of the two scores
     final_group['AQI'] = final_group[['P1_score', 'P2_score']].max(axis=1)
-    final_group['Date'] = final_group['date']
+    final_group['rdate'] = final_group['date'].astype(str)
+    final_group['lat'] = final_group['lat'].astype(str)     # lat as string
+    final_group['lon'] = final_group['lon'].astype(str)     # lon as string
+    final_group['AQI'] = final_group['AQI'].fillna(0).astype(int)  # AQI as integer, replace NaN with 0
+
     # Keep only relevant columns
-    result_df = final_group[['Date','date', 'lat', 'lon', 'AQI']]
+    result_df = final_group[['date','rdate', 'lat', 'lon', 'AQI']]
     result_df.to_parquet(output_folder, index=False, engine='pyarrow', 
-                         compression='snappy', partition_cols=['Date'])
+                         compression='snappy', partition_cols=['date'])
     print(f"Converted all CSVs in {input_folder} to Parquet at {output_folder}")
 
-def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> None:
+def unzip_files_in_folder(input_folder: str, output_dir: str | None = None) -> None:
     # Unzip all zip files in the given folder to the output directory
     if output_dir is None:
-        output_dir = folder_path
+        output_dir = input_folder
 
     os.makedirs(output_dir, exist_ok=True)
     # Find all zip files in the folder
-    zip_files = glob.glob(os.path.join(folder_path, "*.zip"))
+    zip_files = glob.glob(os.path.join(input_folder, "*.zip"))
 
     for zip_file in zip_files:
         with zipfile.ZipFile(zip_file, "r") as z:
@@ -99,22 +114,12 @@ def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> No
                 # Extract file content by chunks to avoid memory issues
                 with z.open(member) as source, open(target_path, "wb") as target:
                     shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
-    print(f"Unzipped files in {folder_path}")
-
-start = date(2021, 9, 1)
-end = date(2021, 12, 20)
-current = start
-of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
-#folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
-folder = r"E:\zips"
-#folder = r"D:\s3_to_be_done"
+    print(f"Unzipped files in {input_folder}")
 
 FromFolder = lambda mF, mo, yr : mF +  f"\{yr}-{mo:02d}" + "\\"
-
 while current <= end:
     current = date(current.year, current.month, 1)
-    
-    #unzip_files_in_folder(FromFolder(folder, current.month, current.year))
+    unzip_files_in_folder(FromFolder(folder, current.month, current.year))
     process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
     current += timedelta(days=31)
 

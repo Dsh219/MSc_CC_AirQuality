@@ -2,8 +2,10 @@ import boto3
 import os
 import json
 import time 
+from urllib.parse import urlparse
 
 s3 = boto3.resource('s3')
+s3C = boto3.client('s3')
 athena = boto3.client('athena')
 bucket_name = os.environ["S3_BUCKET_DATA"]  # S3 bucket name from setup.py
 athena_name = os.environ["athena_name"]  # Athena table name from setup.py
@@ -58,13 +60,31 @@ def lambda_handler(event, context):
             break
         time.sleep(1)
     if query_state == 'SUCCEEDED':
+        results = athena.get_query_results(QueryExecutionId=query_id, MaxResults=2)
+        has_data = len(results['ResultSet']['Rows']) > 1
+        if not has_data:
+            return {
+                'statusCode': 204,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                },
+                'body': json.dumps('No data found for the given parameters.')
+            }
         result_location = query_status['QueryExecution']['ResultConfiguration']['OutputLocation']
+        parsed_uri = urlparse(result_location)
+        bucket = parsed_uri.netloc
+        key = parsed_uri.path.lstrip('/')
+        presigned_url = s3C.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket, 'Key': key},
+            ExpiresIn=300
+        )
         return {
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
             },
-            'body': json.dumps({'result_location': result_location})
+            'body': json.dumps({'download_url': presigned_url})
         }
     else:
         error_message = query_status['QueryExecution']['Status'].get('StateChangeReason', 'Unknown error')
@@ -75,37 +95,3 @@ def lambda_handler(event, context):
             },
             'body': json.dumps(f'Data not retrieved with state: {query_state} - {error_message}')
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # Download the input file from S3
-    s3.Bucket(bucket_name).download_file(input_key, '/tmp/input_file.csv')
-
-    # Process the file (dummy processing here)
-    with open('/tmp/input_file.csv', 'r') as infile, open('/tmp/output_file.csv', 'w') as outfile:
-        for line in infile:
-            # Example processing: convert to uppercase
-            outfile.write(line.upper())
-
-    # Upload the processed file back to S3
-    s3.Bucket(bucket_name).upload_file('/tmp/output_file.csv', output_key)
-
-    return {
-        'statusCode': 200,
-        'body': f'Processed file saved to {output_key}'
-    }

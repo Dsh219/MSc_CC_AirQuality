@@ -3,7 +3,7 @@
 <head>
     <title>Air Quality Map</title>
     <!--place reserved for script insertion at line 6 : two consts are inserted: 1. REQUEST_24HRS_URL 2. REQUEST_ARCHIVE_URL -->
-<script>const REQUEST_24HRS_URL = "https://xdcuss2ae6.execute-api.us-east-1.amazonaws.com/dev/request_24hrs"; const REQUEST_ARCHIVE_URL = "https://xdcuss2ae6.execute-api.us-east-1.amazonaws.com/dev/request_archive";</script>
+<script>const REQUEST_24HRS_URL = "https://tkzbywpvr9.execute-api.us-east-1.amazonaws.com/dev/request_24hrs"; const REQUEST_ARCHIVE_URL = "https://tkzbywpvr9.execute-api.us-east-1.amazonaws.com/dev/request_archive";</script>
      <!-- css of map-->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
@@ -298,13 +298,23 @@
                 event.preventDefault();
                 return;
             }
-            fetch(`${REQUEST_ARCHIVE_URL}?lat=${latitude}&lon=${longitude}&start_date=${startDate}&end_date=${endDate}`)
+            fetch(`${REQUEST_ARCHIVE_URL}?lat=${latitude}&lon=${longitude}&date0=${startDate}&date1=${endDate}`)
             .then(response => {
+                if (response.status === 204) {
+                    throw new Error("No data found" + response.body);
+
+                }
+
                 if (!response.ok) {
                     throw new Error("Network response was not ok " + response.statusText);
                 }
-                return response.blob();
+                return response.json();
             })
+            .then(data => {
+                const s3Url = data.download_url;
+                return fetch(s3Url);
+            })
+            .then(res => res.blob())
             .then(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');

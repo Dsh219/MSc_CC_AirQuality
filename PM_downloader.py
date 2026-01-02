@@ -15,7 +15,14 @@ logging.basicConfig(filename=logname,
                     level=logging.INFO,
                     format = '%(name)s-%(levelname)s: %(message)s'
                     )
+folder = f"https://archive.sensor.community/csv_per_month/"
+local = "../s3/"
 
+
+start = date(2025, 12, 1)
+end = date(2026, 1, 1)
+
+Path(local).mkdir(parents=True, exist_ok=True)
 pmsensors = [
  "SDS011",
  "SPS30",
@@ -30,12 +37,6 @@ pmsensors = [
  "NEXTPM"
 ]
 
-folder = f"https://archive.sensor.community/csv_per_month/"
-local = "../s3/"
-Path(local).mkdir(parents=True, exist_ok=True)
-
-start = date(2025, 12, 1)
-end = date(2026, 1, 1)
 current = start
 while current < end:
     skip = False
