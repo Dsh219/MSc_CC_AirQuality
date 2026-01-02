@@ -66,6 +66,7 @@ def lambda_handler(event, context):
         #    'AQI':AQI
         #}
         entry = {
+            'Rdate': date,
             'lat': lat,
             'lon': lon,
             'AQI':AQI
@@ -82,6 +83,7 @@ def lambda_handler(event, context):
     #    ('AQI', pa.int32())
     #])
     schema = pa.schema([
+        ('Rdate', pa.string()),
         ('lat', pa.string()),
         ('lon', pa.string()),
         ('AQI', pa.int32())
@@ -114,6 +116,17 @@ def lambda_handler(event, context):
         QueryExecutionContext={"Database": "default"},
         ResultConfiguration={"OutputLocation": athena_output}
     )
+    while True:
+        query_status = athena.get_query_execution(QueryExecutionId=response['QueryExecutionId'])
+        query_state = query_status['QueryExecution']['Status']['State']
+        if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+            break
+        time.sleep(1)
+    if query_state != 'SUCCEEDED':
+        return {
+            "statusCode": 500,
+            "body": json.dumps(f"Failed to update Athena partition: {query_state}")
+        }
     return {
         "statusCode": 200,
         "body": json.dumps(f"{num} items written to S3 as Parquet")

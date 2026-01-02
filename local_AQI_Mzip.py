@@ -69,11 +69,11 @@ def process_large_csv_to_parquet(input_folder:str, output_folder:str, chunk_size
 
     # Set AQI --- Max of the two scores
     final_group['AQI'] = final_group[['P1_score', 'P2_score']].max(axis=1)
-
+    final_group['Date'] = final_group['date']
     # Keep only relevant columns
-    result_df = final_group[['date', 'lat', 'lon', 'AQI']]
+    result_df = final_group[['Date','date', 'lat', 'lon', 'AQI']]
     result_df.to_parquet(output_folder, index=False, engine='pyarrow', 
-                         compression='snappy', partition_cols=['date'])
+                         compression='snappy', partition_cols=['Date'])
     print(f"Converted all CSVs in {input_folder} to Parquet at {output_folder}")
 
 def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> None:
@@ -101,8 +101,8 @@ def unzip_files_in_folder(folder_path: str, output_dir: str | None = None) -> No
                     shutil.copyfileobj(source, target, length=1024 * 1024 * 500)
     print(f"Unzipped files in {folder_path}")
 
-start = date(2020, 7, 1)
-end = date(2020, 12, 20)
+start = date(2021, 9, 1)
+end = date(2021, 12, 20)
 current = start
 of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
 #folder = r"C:\Users\Shenghui\Documents\GitHub\s3"

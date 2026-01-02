@@ -4,6 +4,8 @@ import boto3
 from botocore.config import Config
 import zipfile
 import json
+from pathlib import Path
+import time
 stage = 1
 total_stages = 10
 #---------------------------------------------------------------------------------#
@@ -21,6 +23,7 @@ region = 'us-east-1'
 # Define vars for setup
 python_version = 'python3.12'         # specify the Python version for Lambda functions pyarrow layer compatibility
 S3_bucket_data = 'cloudcomputing-20260101'   # has to be globally unique
+local_data_folder = './data/s3'
 athena_output = f's3://{S3_bucket_data}/output/'  # S3 bucket for Athena query results
 athena_root = f's3://{S3_bucket_data}/data/'    # S3 bucket for Athena root
 athena_name = 'daily_aqi'  # Athena table name
@@ -598,7 +601,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #-------------------------Upload frontend files to S3-----------------------------#
 #---------------------------------------------------------------------------------#
-print(f"\n>>>>>> {stage}/{total_stages} Uploading frontend files to S3 bucket {S3_bucket_frontend}...")
+print(f"\n>>>>>> {stage}/{total_stages} Uploading frontend and data files to S3 buckets...")
 s3C.upload_file(
         Filename = './frontend/index.html', 
         Bucket = S3_bucket_frontend, 
@@ -612,6 +615,22 @@ s3C.upload_file(
         Key = 'locations.json', 
         ExtraArgs={'ContentType': 'application/json'}
         )
+
+for folder in Path(local_data_folder).iterdir():
+    if folder.is_dir():
+        Fname = folder.name 
+        yr,mo,dy = Fname.split('=')[1].split('-')
+        pq_file = list(folder.glob('*.parquet'))[0]
+        s3_key = f"data/year={yr}/month={mo}/day={dy}/data.parquet"
+        s3C.upload_file(
+            Filename = str(pq_file), 
+            Bucket = S3_bucket_data, 
+            Key = s3_key, 
+            ExtraArgs={'ContentType': 'application/parquet'}
+            )
+        print(f"\r{Fname}", end='')
+print("\nAll data parquet files have been uploaded to S3 data bucket.")
+
 print(f"Frontend files have been uploaded to S3 bucket {S3_bucket_frontend} <<<<< done")
 stage += 1
 
@@ -622,6 +641,7 @@ print(f"\n>>>>>> {stage}/{total_stages} Linking Athena table to the S3 bucket {S
 athenaC = session.client('athena')
 query = f"""
 CREATE EXTERNAL TABLE IF NOT EXISTS {athena_name} (
+    Rdate STRING,
     lat: STRING,
     lon: STRING,
     AQI: INT
@@ -635,6 +655,29 @@ response = athenaC.start_query_execution(
     QueryExecutionContext={"Database": "default"},
     ResultConfiguration={"OutputLocation": athena_output}
 )
+while True:
+    query_status = athenaC.get_query_execution(QueryExecutionId=response['QueryExecutionId'])
+    query_state = query_status['QueryExecution']['Status']['State']
+    if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+        break
+    time.sleep(2)
+if query_state != 'SUCCEEDED':
+    raise Exception(f"Setup stopped! => Failed to link Athena table to the S3 bucket {S3_bucket_data} : Query {query_state}")
+
+response = athenaC.start_query_execution(
+    QueryString=f"MSCK REPAIR TABLE {athena_name}",
+    QueryExecutionContext={"Database": "default"},
+    ResultConfiguration={"OutputLocation": athena_output}
+)
+while True:
+    query_status = athenaC.get_query_execution(QueryExecutionId=response['QueryExecutionId'])
+    query_state = query_status['QueryExecution']['Status']['State']
+    if query_state in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+        break
+    time.sleep(2)
+if query_state != 'SUCCEEDED':
+    raise Exception(f"Setup stopped! => Failed to link Athena table to the S3 bucket {S3_bucket_data} : Query {query_state}")
+
 print(f"Athena table has been linked to the S3 bucket {S3_bucket_data} <<<<< done")
 stage += 1
 #---------------------------------------------------------------------------------#

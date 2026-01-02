@@ -4,7 +4,7 @@ import re
 import logging
 import os
 from datetime import date
-
+from pathlib import Path
 
 scriptname = os.path.basename(__file__)
 logname = f"./log/{scriptname}.log"
@@ -32,9 +32,10 @@ pmsensors = [
 
 folder = f"https://archive.sensor.community/csv_per_month/"
 local = "../s3/"
+Path(local).mkdir(parents=True, exist_ok=True)
 
-start = date(2023, 1, 1)
-end = date(2025, 1, 1)
+start = date(2025, 12, 1)
+end = date(2026, 1, 1)
 current = start
 while current < end:
     skip = False

@@ -36,12 +36,21 @@ def lambda_handler(event, context):
             AND lat = '{lat}'
             AND lon = '{lon}'
     """
-    response = athena.start_query_execution(
-        QueryString=query,
-        QueryExecutionContext={'Database': 'default'},
-        ResultConfiguration={'OutputLocation': athena_output}
-    )
-    query_id = response['QueryExecutionId']
+    try:
+        response = athena.start_query_execution(
+            QueryString=query,
+            QueryExecutionContext={'Database': 'default'},
+            ResultConfiguration={'OutputLocation': athena_output}
+        )
+        query_id = response['QueryExecutionId']
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+            },
+            'body': json.dumps(f'Error starting query execution: {str(e)}')
+        }
     while True:
         query_status = athena.get_query_execution(QueryExecutionId=query_id)
         query_state = query_status['QueryExecution']['Status']['State']
