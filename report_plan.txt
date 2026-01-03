@@ -1,0 +1,39 @@
+Report:
+• 10% Introduction, conclusions
+• 30% Methodology:
+ 	Description of implementation including system architecture
+ 	Details of experimental methodology
+• 10% Solution: source code, organization, documentation
+• 10% Presentation of results of validation/testing
+• 30% Discussion and analysis of the results
+• 10% Report structure, presentation, clarity, references
+
+Things have to be included:	
+	Briefly discuss the implications of data security and sovereignty with respect to the environmental sensor.
+
+Flow:
+
+x1. Introduction:
+	
+2. Methodology:
+	0. Overall method
+	1. Data pre-process
+	2. Backend
+	3. Frontend
+	4. solution structure 
+	5. file systems used in different  part
+	6. Boto3 
+	
+3. Analysis and Discussion
+	1. performance on each lambdas
+	2. load test
+	3. cost
+
+4. Conclusion
+	1. summary and what can be improved
+	2. data security and sovereignty with respect to the environmental sensor.
+
+5. Appendix
+	read
+	include all scripts
+		
