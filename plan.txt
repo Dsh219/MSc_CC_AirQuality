@@ -132,7 +132,7 @@ DynanoDB structure: # this decimal is okay due higher accurcy system here
 Timeline:
 								|---- 00:00 trigger daily lambda
 	00:45 01:45 ... 22:45 23:45 00:45
-	   |-----                     |-----
+	   |-----                     |------ trigger hourly lambda
 			|------
 					  |------
 					  	    |------
