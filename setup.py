@@ -7,27 +7,65 @@ import json
 from pathlib import Path
 import time
 stage = 1
-total_stages = 10
+total_stages = 11
+# This is a script to setup AWS application by using Boto3
+#!!! AWS credentials are stored in creds/ , active lab session should be copied there before running this script
+#!!! Only changes S3 bucket names, other vars can only be changed if you know what you are doing.
+###
+# The flow of setup.py shows below:
+#
+# Load credentials and define vars => Create a boto3 session =>  Get IAM role ARN and account ID =>
+# Create and setup S3 buckets      => EC2 security setup     =>  DynamoDB setup                  => 
+# Lambda setup                     => EventBridge setup      =>  API Gateway setup               =>
+# Upload frontend files and archive data to corresponding S3 bucket => Link Athena to the archive data folder =>
+# website url will be displayed at the end if all setups are successful
+# 
+# website url should be like this for us-east-1:
+#       http://{bucketname}.s3-website-us-east-1.amazonaws.com
+###
+# Sepcial notes:
+#   S3:   
+#        -Frontend bucket is made public
+#        -Data bucket has two folders data/ and output/ : 
+#             1. only allow GET request from Frontend URL
+#             2. 24 hrs lifecycle is applied on output/ folder
+#
+#   DynamoDB:
+#        -Time to Live (TTL) is set to 24 hrs
+#        -Global Secondary Index is set for more efficient data retrivel
+#
+#   Lambda:
+#        -4 lambda functions are stored at the parent level with prefix  <lambda_>
+#        -pyarrow lib is packed as layer at a linux machine, zip file has to be <= 50MB, unzipped <= 250MB
+#                   the layer zipped file is stored in zips/ 
+#        -python>=3.12 is a must for making lambda using 2023 AWS linux
+#        -all other lambda functions are zipped and stored in zips/ and upload to AWS during setup
+#
+#   API Gateway:
+#        -two frontend requests are generated here 
+#        -these two URLs are written to the index.html at line 6 (reserved place)
+#
 #---------------------------------------------------------------------------------#
 #-----------------------Load credentials and define vars--------------------------#
 #---------------------------------------------------------------------------------#
 print(f">>>>> {stage}/{total_stages} Loading AWS credentials and vars...")
-#with open('./credentials/credentials.txt', 'r') as file:
-with open('../credentials.txt', 'r') as file:
+with open('./creds/credentials.txt', 'r') as file:  
+#with open('../credentials.txt', 'r') as file: # this is used in development for not tracking credentials by Git
     lines = file.readlines()
     access_key = lines[1].split("=")[1].strip()
     secret_key = lines[2].split("=")[1].strip()
     token = lines[3].split("=")[1].strip()
 region = 'us-east-1'
+# Only changes these bucket names, don't change any other parameters without knowing what you are doing
+S3_bucket_data = 'cloudcomputing-20260105'   # has to be globally unique
+S3_bucket_frontend = 'cloud-computing-frontend-20260105'  # has to be globally unique
 
 # Define vars for setup
 python_version = 'python3.12'         # specify the Python version for Lambda functions pyarrow layer compatibility
-S3_bucket_data = 'cloudcomputing-20260101'   # has to be globally unique
 local_data_folder = './data/s3'
 athena_output = f's3://{S3_bucket_data}/output/'  # S3 bucket for Athena query results
-athena_root = f's3://{S3_bucket_data}/data/'    # S3 bucket for Athena root
-athena_name = 'daily_aqi'  # Athena table name
-S3_bucket_frontend = 'cloud-computing-frontend-20260101'  # has to be globally unique
+athena_root = f's3://{S3_bucket_data}/data/'      # S3 bucket for Athena root
+athena_name = 'daily_aqi'                         # Athena table name
 EC2_security_group_name = 'cloud-computing-CC'
 dynamodb_name = 'DailyAQI'
 GSI_name = 'dailyindex'
@@ -198,7 +236,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #-------------------------EC2 security group setup--------------------------------#
 #---------------------------------------------------------------------------------#
-print(f">>>>> {stage}/{total_stages} Creating EC2 security group with name= {EC2_security_group_name}")
+print(f"\n>>>>> {stage}/{total_stages} Creating EC2 security group with name= {EC2_security_group_name}")
 config = Config(
         retries = {
             'max_attempts': 5,
@@ -301,7 +339,7 @@ stage += 1
 #---------------------------------------------------------------------------------#
 #------------------------------Lambda setup---------------------------------------#
 #---------------------------------------------------------------------------------#
-#''' 
+
 print(f"\n>>>>>> {stage}/{total_stages} Creating Lambda functions...")
 lambdaC = session.client('lambda')
 
@@ -660,9 +698,9 @@ athenaC = session.client('athena')
 query = f"""
 CREATE EXTERNAL TABLE IF NOT EXISTS {athena_name} (
     Rdate STRING,
-    lat: STRING,
-    lon: STRING,
-    AQI: INT
+    lat STRING,
+    lon STRING,
+    AQI INT
 )
 PARTITIONED BY (year INT, month INT, day INT)
 STORED AS PARQUET

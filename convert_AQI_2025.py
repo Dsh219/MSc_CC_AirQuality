@@ -5,7 +5,7 @@ import re
 import pandas as pd
 import time 
 import logging
-
+from datetime import date, timedelta
 
 
 scriptname = os.path.basename(__file__)
@@ -78,8 +78,7 @@ def convert_AQI(url:str,date:str,sep:str=";",retries:int=4) -> list:
             aqi_p2
             ]
 
-from datetime import date, timedelta
-import os
+
 start = date(2025, 1, 1)
 end = date(2025, 3, 1)
 monthly_data = []
