@@ -5,10 +5,10 @@ import { check, sleep } from 'k6';
 export const options = {
   // dont download response bodies for prevent memory issues
   discardResponseBodies: true,         
-  // This defines how the traffic flows : 100 userss for fetching last 24hrs data (number can be adjusted)
+  // This defines how the traffic flows : 400 userss
   stages: [
-    { duration: '1m', target: 100 },  // RAMP UP
-    { duration: '10m', target: 100 }, // STEADY
+    { duration: '1m', target: 400 },  // RAMP UP
+    { duration: '10m', target: 400 }, // STEADY
     { duration: '1m', target: 0 },    // RAMP DOWN
   ],
 
@@ -29,7 +29,7 @@ export default function () {
   check(res, {
     'status is 200': (r) => r.status === 200
   });
-  const resData = http.get('https://b95oaxxipi.execute-api.us-east-1.amazonaws.com/dev/request_24hrs?lat=51.698&lon=-0.292'); //link is copied from index.html
+  const resData = http.get('https://b95oaxxipi.execute-api.us-east-1.amazonaws.com/dev/request_archive?lat=51.698&lon=-0.292&date0=2020-10-01&date1=2021-02-01'); //link is copied from index.html
   check(resData, { 
     'Data Loaded': (r) => r.status === 200
   });

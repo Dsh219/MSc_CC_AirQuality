@@ -8,7 +8,7 @@ Live data is from:
     https://archive.sensor.community
 
 
-# How to use the system:
+# Directory overview:
   1. creds/ is where AWS lab session credentials goes
   2. data/s3/ is where archive monthly data from 2015-10-01 to 2025-11-30
   3. frontend/ has index.html and locations.json for frontend UI
@@ -16,8 +16,10 @@ Live data is from:
   5. zips/ holds all lambda function zipped files
   6. lambda function scripts are stored in the working directory with prefix lambda_
   7. setup.py is used to setup entire application by using boto3
+            |---> Only change the S3 buckets
   8. PM_downloader.py can be used to download monthly zip data, only change the start date and end date.
   9. local_AQI_Mzip.py can be used to extract the zip and convert it to parquet files.
+            |---> pyarrow should be installed 
 
 
 # Load test is done on t5.large EC2 instance running Ubuntu:

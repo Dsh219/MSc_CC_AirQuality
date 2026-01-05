@@ -7,20 +7,29 @@ import pyarrow.parquet as pq
 import io
 import time
 import os 
+
+# Lambda function to convert data in DynamoDB to parquet format and store it in S3
+# Parquet column names:
+#   Rdate (string) YYYY-MM-DD
+#   lat (string)
+#   lon (string)
+#   AQI (integer)
+
+
 def aqi(value:Decimal, ranges:list) -> int:
     for high, score in ranges:
         if value <= high:
             return score
-
+        
+# PM sensor types to consider
 pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
         "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
         "PMS6003","NEXTPM"]
-
+# AQI breakpoints for PM2.5 and PM10
 PM25_RANGES = [ (Decimal(11), 1), (Decimal(23), 2), (Decimal(35), 3), (Decimal(41), 4), (Decimal(47), 5), 
             (Decimal(53), 6), (Decimal(58), 7), (Decimal(64), 8), (Decimal(70), 9), (Decimal('inf'), 10) ]
 PM10_RANGES = [ (Decimal(16), 1), (Decimal(33), 2), (Decimal(50), 3), (Decimal(58), 4), (Decimal(66), 5), 
             (Decimal(75), 6), (Decimal(83), 7), (Decimal(91), 8), (Decimal(100), 9), (Decimal('inf'), 10) ]
-
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["DYNAMODB_TABLE"]) # DynamoDB table name from setup.py <======        
@@ -40,7 +49,7 @@ def lambda_handler(event, context):
             "statusCode": 200,
             "body": json.dumps("No data available for processing.")
         }
-    date = response['Items'][0]['timestamp'].split('T')[0]  # teimstamp => YYYY-MM-DDTHH:MM:SSZ
+    date = response['Items'][0]['timestamp'].split('T')[0]  # timestamp => YYYY-MM-DDTHH:MM:SSZ
     while True:
         for item in response['Items']:
             lat, lon , id = item['geo'].split('_')

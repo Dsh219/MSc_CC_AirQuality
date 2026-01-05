@@ -16,13 +16,14 @@ logging.basicConfig(filename=logname,
                     format = '%(name)s-%(levelname)s: %(message)s'
                     )
 folder = f"https://archive.sensor.community/csv_per_month/"
-local = "../s3/"
+local = "./data/archive/"
 
 
 start = date(2025, 12, 1)
 end = date(2026, 1, 1)
 
 Path(local).mkdir(parents=True, exist_ok=True)
+# List of PM sensor types
 pmsensors = [
  "SDS011",
  "SPS30",
@@ -36,7 +37,7 @@ pmsensors = [
  "PMS6003",
  "NEXTPM"
 ]
-
+# Download and process month by month
 current = start
 while current < end:
     skip = False
@@ -58,7 +59,7 @@ while current < end:
         else:
             current = date(current.year, current.month + 1, 1)
         continue
-
+    # Parse the HTML to find all .zip file links
     html = response.text
     pattern = re.compile(r'<a href="([^"]+\.zip)"', re.IGNORECASE)
     hrefs = pattern.findall(html)

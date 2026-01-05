@@ -3,13 +3,13 @@ import { check, sleep } from 'k6';
 
 // Config
 export const options = {
-
-  discardResponseBodies: true,         // download the test
-  // This defines how the traffic flows
+  // dont download response bodies for prevent memory issues
+  discardResponseBodies: true,        
+  // This defines how the traffic flows : 2000 users
   stages: [
-    { duration: '1m', target: 2000 },  // RAMP UP: Grow from 0 to 100 users over 1 minute
-    { duration: '10m', target: 2000 }, // STEADY: Stay at 100 users for 10 minutes 
-    { duration: '1m', target: 0 },    // RAMP DOWN: Gracefully disconnect users over 1 minute
+    { duration: '1m', target: 2000 },  // RAMP UP
+    { duration: '10m', target: 2000 }, // STEADY
+    { duration: '1m', target: 0 },    // RAMP DOWN
   ],
 
   // Pass/Fail criteria
@@ -20,20 +20,15 @@ export const options = {
 };
 
 // -----------------------------------------------------------------------
-// 2. THE TEST LOGIC
+// THE TEST LOGIC
 // -----------------------------------------------------------------------
 export default function () {
-  // *** REPLACE THIS URL WITH YOUR TARGET ***
   const url = 'http://cloud-computing-frontend-20260101.s3-website-us-east-1.amazonaws.com/';
-
-  // Make the request
   const res = http.get(url);
-
   // Validate the response
   check(res, {
     'status is 200': (r) => r.status === 200,
     'page content loaded': (r) => r.body && r.body.length > 0,
   });
-
   sleep(1); 
 }

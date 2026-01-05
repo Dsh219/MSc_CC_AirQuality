@@ -8,6 +8,7 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ["DYNAMODB_TABLE"]) # DynamoDB table name from setup.py
 GSI_name = os.environ["GSI_NAME"]  # GSI name from setup.py
 
+# Custom JSON encoder to handle Decimal types from DynamoDB
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):
@@ -16,6 +17,7 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 def lambda_handler(event, context):
+    # Validate input parameters
     if 'queryStringParameters' not in event:
         return {
             'statusCode': 400,

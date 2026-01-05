@@ -3,13 +3,13 @@ import { check, sleep } from 'k6';
 
 // Config
 export const options = {
-
-  discardResponseBodies: true,         // download the test
-  // This defines how the traffic flows
+  // dont download response bodies for prevent memory issues
+  discardResponseBodies: true,         
+  // This defines how the traffic flows : 2000 users
   stages: [
-    { duration: '1m', target: 2000 },  // RAMP UP: Grow from 0 to 100 users over 1 minute
-    { duration: '10m', target: 2000 }, // STEADY: Stay at 100 users for 10 minutes 
-    { duration: '1m', target: 0 },    // RAMP DOWN: Gracefully disconnect users over 1 minute
+    { duration: '1m', target: 2000 },  // RAMP UP
+    { duration: '10m', target: 2000 }, // STEADY
+    { duration: '1m', target: 0 },    // RAMP DOWN
   ],
 
   // Pass/Fail criteria
@@ -20,24 +20,18 @@ export const options = {
 };
 
 // -----------------------------------------------------------------------
-// 2. THE TEST LOGIC
+// The TEST LOGIC
 // -----------------------------------------------------------------------
 export default function () {
-  // *** REPLACE THIS URL WITH YOUR TARGET ***
-  const url = 'http://cloud-computing-frontend-20260105.s3-website-us-east-1.amazonaws.com/'; //20260101
-
-  // Make the request
+  const url = 'http://cloud-computing-frontend-20260101.s3-website-us-east-1.amazonaws.com/'; 
   const res = http.get(url);
-
   // Validate the response
   check(res, {
     'status is 200': (r) => r.status === 200
   });
-
-const resData = http.get('https://b95oaxxipi.execute-api.us-east-1.amazonaws.com/dev/request_24hrs?lat=51.698&lon=-0.293'); //-0.292
-check(resData, { 
+  const resData = http.get('https://b95oaxxipi.execute-api.us-east-1.amazonaws.com/dev/request_24hrs?lat=51.698&lon=-0.292'); //link is copied from index.html
+  check(resData, { 
     'Data Loaded': (r) => r.status === 200
   });
-
   sleep(2); 
 }

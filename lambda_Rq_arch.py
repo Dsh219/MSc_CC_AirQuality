@@ -12,6 +12,7 @@ athena_name = os.environ["athena_name"]  # Athena table name from setup.py
 athena_output = os.environ["ATHENA_OUTPUT"]  # Athena output S3 bucket from setup.py
 
 def lambda_handler(event, context):
+    # Validate input parameters
     if 'queryStringParameters' not in event:
         return {
             'statusCode': 400,

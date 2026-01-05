@@ -7,14 +7,14 @@ import zipfile
 import shutil
 st = time.time()
 
-
+# Define start and end dates for processing, only change these two lines
+# only changes yr and month.
 start = date(2025, 12, 1)
 end = date(2025, 12, 20)
+##
 current = start
-of = r"C:\Users\Shenghui\Documents\GitHub\parquet" + "\\"
-#folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
-folder = r"C:\Users\Shenghui\Documents\GitHub\s3"
-#folder = r"D:\s3_to_be_done"
+of = r"./data/s3/" # output folder for parquet files
+folder = r"./data/archive/" #folder where zip files are stored
 
 
 # P1: PM10, P2: PM2.5
@@ -122,8 +122,5 @@ while current <= end:
     unzip_files_in_folder(FromFolder(folder, current.month, current.year))
     process_large_csv_to_parquet(FromFolder(folder, current.month, current.year), of)
     current += timedelta(days=31)
-
-
-
 
 print(f"Total time taken: {time.time() - st} seconds")

@@ -16,6 +16,7 @@ import os
 # The table is created in setup.py
 
 url_1hr = "https://data.sensor.community/static/v2/data.1h.json"
+# PM sensor types
 pmsensors = ["SDS011","SPS30","PMS5003","PMS7003",
         "PMS1003","HPM","PPD42NS","SDS021","PMS3003",
         "PMS6003","NEXTPM"]
@@ -36,6 +37,7 @@ def lambda_handler(event, context):
                 }
             pass 
     num = 0
+    # Batch write to DynamoDB
     with table.batch_writer() as batch:
         for Each in data:
             Type = Each['sensor']['sensor_type']['name']
