@@ -146,17 +146,12 @@ Done        Daily mechanism includes:
                     |---> only using pyarrow is possible. it is only 154 MB < 250 MB and zip 47MB   for python3.11 <= this cause crushes due to older version of Glibc 2.26
                     when create lambda use python 3.12, this will make lambda use os of aws 2023   so the glibc is 2.34 which aligns with the pyarrow layer creator's os
                         |-> memory 1024 MB
-                    Run time
+                    Run time (data got from lambda console tesk)
                     |--> Duration: 48486.09 ms	Billed Duration: 49394 ms	Memory Size: 1024 MB	Max Memory Used: 309 MB	
                     |--> Duration: 47205.76 ms	Billed Duration: 48164 ms	Memory Size: 1024 MB	Max Memory Used: 308 MB
                     |--> Duration: 46485.84 ms	Billed Duration: 46486 ms	Memory Size: 1024 MB	Max Memory Used: 310 MB
 
 done            Every 48hrs from data enry, DynamoDB uses ttl for clear data
-done            Every hour HH:30, update DynanoDB. (data got from lambda console tesk)
-                    |--> Duration: 49594.55 ms	Billed Duration: 49889 ms
-                    |--> Duration: 47653.61 ms	Billed Duration: 47654 ms
-                    |--> Duration: 47626.31 ms	Billed Duration: 47627 ms
-                    |--> Duration: 47339.39 ms	Billed Duration: 47340 ms
 
                     
 
